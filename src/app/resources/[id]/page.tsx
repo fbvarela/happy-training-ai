@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent } from '@/components/ui/card'
 import { TopBar } from '@/components/layout/TopBar'
 import { DeleteResourceButton } from '@/components/resources/DeleteResourceButton'
+import { TranscribeButton } from '@/components/resources/TranscribeButton'
 import { getResourceById } from '@/lib/resources/queries'
 
 const TYPE_ICON: Record<string, string> = {
@@ -103,10 +104,11 @@ export default async function ResourceDetailPage({ params }: { params: Promise<{
                   title={resource.title}
                 />
               </div>
-              <div className="mt-3">
+              <div className="mt-3 flex gap-2">
                 <Link href={`/resources/${resource.id}/read`}>
                   <Button size="sm" variant="outline">View Transcript</Button>
                 </Link>
+                <TranscribeButton resourceId={resource.id} status={resource.transcriptStatus} />
               </div>
             </CardContent>
           </Card>
