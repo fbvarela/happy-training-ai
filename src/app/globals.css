@@ -109,6 +109,11 @@
 }
 
 @layer base {
+  html {
+    /* Scale every rem-based size up ~12.5% for readability (16px → 18px base) */
+    font-size: 112.5%;
+  }
+
   body {
     background: var(--bg);
     color: var(--text);
