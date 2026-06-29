@@ -6,9 +6,11 @@ import { DeleteResourceButton } from '@/components/resources/DeleteResourceButto
 import { ElementsContent } from '@/components/resources/ElementsContent'
 import { getResourceById } from '@/lib/resources/queries'
 import { getElementsByResourceId } from '@/lib/resources/elementQueries'
+import { extractArticle } from '@/lib/resources/articleExtract'
 import { TranscriptBlock } from '@/components/resources/TranscriptBlock'
 import { getResourceIcon } from '@/lib/resources/icons'
 import { getTopicIcon } from '@/lib/topics/icons'
+import type { ElementWithContent } from '@/components/resources/ElementsContent'
 
 export default async function ResourceDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -17,6 +19,17 @@ export default async function ResourceDetailPage({ params }: { params: Promise<{
     getElementsByResourceId(Number(id)),
   ])
   if (!resource) notFound()
+
+  // Pre-extract article content server-side so it renders inline
+  const elementsWithContent: ElementWithContent[] = await Promise.all(
+    elements.map(async el => {
+      if (el.type === 'article' && el.url) {
+        const article = await extractArticle(el.url)
+        return { ...el, extractedHtml: article?.content ?? null }
+      }
+      return { ...el, extractedHtml: null }
+    })
+  )
 
   const TypeIcon = getResourceIcon(resource.type)
   const TopicIcon = resource.topicIcon ? getTopicIcon(resource.topicIcon) : null
@@ -37,15 +50,14 @@ export default async function ResourceDetailPage({ params }: { params: Promise<{
       />
 
       <div className="resource-detail-layout">
-        {/* ── Left: content elements ── */}
+        {/* ── Left: full inline content ── */}
         <div>
-          <ElementsContent resourceId={resource.id} initialElements={elements} />
+          <ElementsContent resourceId={resource.id} initialElements={elementsWithContent} />
         </div>
 
         {/* ── Right: metadata sidebar ── */}
         <aside className="resource-detail-sidebar">
 
-          {/* Badges */}
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
             <span className="hf-badge" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
               <TypeIcon size={12} /> {resource.type}
@@ -57,7 +69,6 @@ export default async function ResourceDetailPage({ params }: { params: Promise<{
             )}
           </div>
 
-          {/* AI Summary */}
           {resource.aiSummary && (
             <div className="hf-card" style={{ padding: '14px 16px' }}>
               <div style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px' }}>
@@ -67,14 +78,12 @@ export default async function ResourceDetailPage({ params }: { params: Promise<{
             </div>
           )}
 
-          {/* Resource-level transcript */}
           {resource.transcript && (
             <div className="hf-card" style={{ padding: '14px 16px' }}>
               <TranscriptBlock transcript={resource.transcript} resourceId={resource.id} inline />
             </div>
           )}
 
-          {/* Source URL */}
           {resource.url && (
             <div className="hf-card" style={{ padding: '14px 16px' }}>
               <div style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '6px' }}>
@@ -91,7 +100,6 @@ export default async function ResourceDetailPage({ params }: { params: Promise<{
             </div>
           )}
 
-          {/* Date */}
           <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', paddingLeft: '2px' }}>
             Added {new Date(resource.createdAt).toLocaleDateString()}
           </div>
