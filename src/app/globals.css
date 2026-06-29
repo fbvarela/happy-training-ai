@@ -585,6 +585,12 @@
     border-top: 1px solid var(--line);
   }
 
+  .reader-transcript-section p {
+    margin: 0 0 1.2em;
+    text-align: justify;
+    hyphens: auto;
+  }
+
   .reader-transcript-label {
     font-size: 0.72rem;
     font-weight: 700;

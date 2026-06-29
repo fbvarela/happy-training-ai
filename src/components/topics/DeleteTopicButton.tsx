@@ -2,15 +2,16 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Trash2 } from 'lucide-react'
+import { Trash2, Check, X } from 'lucide-react'
 import { toast } from 'sonner'
 
 export function DeleteTopicButton({ id }: { id: number }) {
   const router = useRouter()
+  const [confirming, setConfirming] = useState(false)
   const [loading, setLoading] = useState(false)
 
   async function handleDelete() {
-    if (!confirm('Delete this topic? Resources in it will not be deleted.')) return
+    setConfirming(false)
     setLoading(true)
     try {
       const res = await fetch(`/api/topics/${id}`, { method: 'DELETE' })
@@ -24,8 +25,22 @@ export function DeleteTopicButton({ id }: { id: number }) {
     }
   }
 
+  if (confirming) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Resources won't be deleted.</span>
+        <button onClick={() => setConfirming(false)} className="btn btn-ghost btn-sm">
+          <X size={13} /> No
+        </button>
+        <button onClick={handleDelete} className="btn btn-danger btn-sm">
+          <Check size={13} /> Yes, delete
+        </button>
+      </div>
+    )
+  }
+
   return (
-    <button onClick={handleDelete} disabled={loading} className="btn btn-danger btn-sm">
+    <button onClick={() => setConfirming(true)} disabled={loading} className="btn btn-danger btn-sm">
       <Trash2 size={14} />
       {loading ? 'Deleting…' : 'Delete'}
     </button>
