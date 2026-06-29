@@ -3,11 +3,6 @@
 import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import type { Resource, Topic } from '@/lib/db/schema'
 
 interface ResourceFormProps {
@@ -24,7 +19,7 @@ export function ResourceForm({ resource, topics }: ResourceFormProps) {
   const [url, setUrl] = useState(resource?.url ?? '')
   const [title, setTitle] = useState(resource?.title ?? '')
   const [description, setDescription] = useState(resource?.description ?? '')
-  const [topicId, setTopicId] = useState<string | null>(defaultTopicId || null)
+  const [topicId, setTopicId] = useState(defaultTopicId)
   const [type, setType] = useState(resource?.type ?? 'article')
 
   function handleUrlChange(val: string) {
@@ -53,7 +48,7 @@ export function ResourceForm({ resource, topics }: ResourceFormProps) {
           description,
           url: url || null,
           type,
-          topicId: topicId ?? null,
+          topicId: topicId || null,
         }),
       })
 
@@ -70,38 +65,43 @@ export function ResourceForm({ resource, topics }: ResourceFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-lg space-y-5">
-      <div className="space-y-1.5">
-        <Label htmlFor="url">URL</Label>
-        <Input
+    <form onSubmit={handleSubmit} style={{ maxWidth: '520px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
+      <div className="field">
+        <label className="input-label" htmlFor="url">URL</label>
+        <input
           id="url"
+          className="hf-input"
           type="url"
           value={url}
           onChange={(e) => handleUrlChange(e.target.value)}
           placeholder="https://youtube.com/watch?v=... or https://..."
         />
-        <p className="text-xs text-muted-foreground">Paste a YouTube URL, article URL, or leave blank for manual entry.</p>
+        <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+          Paste a YouTube URL, article URL, or leave blank for manual entry.
+        </p>
       </div>
 
-      <div className="space-y-1.5">
-        <Label htmlFor="type">Type</Label>
-        <Select value={type} onValueChange={(v) => setType(v as Resource['type'])}>
-          <SelectTrigger id="type">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="video">🎥 Video</SelectItem>
-            <SelectItem value="pdf">📄 PDF</SelectItem>
-            <SelectItem value="article">📰 Article</SelectItem>
-            <SelectItem value="snippet">💻 Snippet</SelectItem>
-          </SelectContent>
-        </Select>
+      <div className="field">
+        <label className="input-label" htmlFor="type">Type</label>
+        <select
+          id="type"
+          className="hf-input"
+          value={type}
+          onChange={(e) => setType(e.target.value as Resource['type'])}
+          style={{ cursor: 'pointer' }}
+        >
+          <option value="video">🎥 Video</option>
+          <option value="pdf">📄 PDF</option>
+          <option value="article">📰 Article</option>
+          <option value="snippet">💻 Snippet</option>
+        </select>
       </div>
 
-      <div className="space-y-1.5">
-        <Label htmlFor="title">Title *</Label>
-        <Input
+      <div className="field">
+        <label className="input-label" htmlFor="title">Title *</label>
+        <input
           id="title"
+          className="hf-input"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="e.g. Understanding TypeScript Generics"
@@ -109,40 +109,44 @@ export function ResourceForm({ resource, topics }: ResourceFormProps) {
         />
       </div>
 
-      <div className="space-y-1.5">
-        <Label htmlFor="description">Description</Label>
-        <Textarea
+      <div className="field">
+        <label className="input-label" htmlFor="description">Description</label>
+        <textarea
           id="description"
+          className="hf-input"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="Brief notes about this resource"
           rows={3}
+          style={{ resize: 'vertical' }}
         />
       </div>
 
-      <div className="space-y-1.5">
-        <Label htmlFor="topic">Topic</Label>
-        <Select value={topicId} onValueChange={setTopicId}>
-          <SelectTrigger id="topic">
-            <SelectValue placeholder="Select a topic (optional)" />
-          </SelectTrigger>
-          <SelectContent>
-            {topics.map((t) => (
-              <SelectItem key={t.id} value={String(t.id)}>
-                {t.icon} {t.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <div className="field">
+        <label className="input-label" htmlFor="topic">Topic</label>
+        <select
+          id="topic"
+          className="hf-input"
+          value={topicId}
+          onChange={(e) => setTopicId(e.target.value)}
+          style={{ cursor: 'pointer' }}
+        >
+          <option value="">— No topic —</option>
+          {topics.map((t) => (
+            <option key={t.id} value={String(t.id)}>
+              {t.icon} {t.name}
+            </option>
+          ))}
+        </select>
       </div>
 
-      <div className="flex gap-3 pt-2">
-        <Button type="submit" disabled={loading || !title.trim()}>
+      <div style={{ display: 'flex', gap: '10px', paddingTop: '4px' }}>
+        <button type="submit" className="btn btn-primary" disabled={loading || !title.trim()}>
           {loading ? 'Saving…' : resource ? 'Save Changes' : 'Add Resource'}
-        </Button>
-        <Button type="button" variant="outline" onClick={() => router.back()}>
+        </button>
+        <button type="button" className="btn btn-ghost" onClick={() => router.back()}>
           Cancel
-        </Button>
+        </button>
       </div>
     </form>
   )
