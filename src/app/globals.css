@@ -215,6 +215,12 @@
     font-weight: 600;
   }
 
+  .sidebar-footer {
+    border-top: 1px solid rgba(255,255,255,0.1);
+    padding: 10px 8px 14px;
+    flex-shrink: 0;
+  }
+
   /* ── Mobile nav bar ───────────────────────────── */
 
   .nav-mobile-bar {

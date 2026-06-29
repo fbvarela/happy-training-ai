@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { BookOpen, Brain, Code, Home, LayoutList } from 'lucide-react'
+import { ThemeToggleMini } from './ThemeToggle'
 
 const navItems = [
   { href: '/', label: 'Home', icon: Home },
@@ -22,6 +23,7 @@ export function BottomNav() {
           <span>🎓</span>
           Happy Training
         </Link>
+        <ThemeToggleMini />
       </nav>
 
       <nav className="bottom-nav">

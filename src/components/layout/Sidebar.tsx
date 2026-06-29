@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { BookOpen, Brain, Code, Home, LayoutList } from 'lucide-react'
+import { ThemeToggle } from './ThemeToggle'
 
 const navItems = [
   { href: '/', label: 'Home', icon: Home },
@@ -33,6 +34,10 @@ export function Sidebar() {
           )
         })}
       </nav>
+
+      <div className="sidebar-footer">
+        <ThemeToggle />
+      </div>
     </aside>
   )
 }
