@@ -1,9 +1,9 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { ArrowLeft } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { ArrowLeft, ExternalLink } from 'lucide-react'
 import { getResourceById } from '@/lib/resources/queries'
 import { extractArticle } from '@/lib/resources/articleExtract'
+import { ReaderView } from '@/components/resources/ReaderView'
 
 export default async function ReadPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -20,81 +20,94 @@ export default async function ReadPage({ params }: { params: Promise<{ id: strin
 
   return (
     <div>
-      <div className="mb-6">
-        <Link href={`/resources/${resource.id}`}>
-          <Button variant="ghost" size="sm" className="pl-0">
-            <ArrowLeft size={16} />
-            Back
-          </Button>
+      <div style={{ marginBottom: '28px', display: 'flex', alignItems: 'center', gap: '16px' }}>
+        <Link href={`/resources/${resource.id}`} className="btn btn-ghost btn-sm">
+          <ArrowLeft size={15} />
+          Back
         </Link>
+        {resource.url && (
+          <a
+            href={resource.url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn btn-ghost btn-sm"
+          >
+            <ExternalLink size={14} />
+            Open original
+          </a>
+        )}
       </div>
 
-      <article className="max-w-2xl">
-        <h1 className="text-2xl font-bold mb-2">{resource.title}</h1>
-        {resource.description && (
-          <p className="text-muted-foreground mb-6">{resource.description}</p>
-        )}
+      <ReaderView title={resource.title} description={resource.description ?? undefined}>
 
+        {/* Video embed */}
         {resource.type === 'video' && resource.url && (
-          <div className="mb-8">
-            <div className="aspect-video rounded overflow-hidden bg-black mb-6">
+          <div style={{ marginBottom: '32px' }}>
+            <div style={{ aspectRatio: '16/9', borderRadius: '10px', overflow: 'hidden', background: '#000', marginBottom: '20px' }}>
               <iframe
                 src={`https://www.youtube.com/embed/${resource.url.match(/(?:v=|youtu\.be\/)([^&?]+)/)?.[1]}`}
-                className="w-full h-full"
+                style={{ width: '100%', height: '100%' }}
                 allowFullScreen
                 title={resource.title}
               />
             </div>
-
-            {resource.aiSummary && (
-              <div className="bg-muted/50 rounded-lg p-4 mb-6 border border-border">
-                <p className="text-xs text-muted-foreground mb-2 font-medium uppercase tracking-wide">AI Summary</p>
-                <p className="text-sm leading-relaxed">{resource.aiSummary}</p>
-              </div>
-            )}
-
-            {transcript ? (
-              <div>
-                <h2 className="text-lg font-semibold mb-4">Transcript</h2>
-                <div className="prose prose-sm dark:prose-invert max-w-none">
-                  {transcript.split('\n\n').map((para, i) => (
-                    <p key={i} className="text-sm leading-7 mb-4 text-foreground/90">
-                      {para}
-                    </p>
-                  ))}
-                </div>
-              </div>
-            ) : (
-              <div className="text-center py-8 text-muted-foreground border border-dashed border-border rounded-lg">
-                <p className="text-sm mb-3">No transcript yet.</p>
-                <Link href={`/resources/${resource.id}`}>
-                  <Button size="sm" variant="outline">Go back to transcribe</Button>
-                </Link>
-              </div>
-            )}
           </div>
         )}
 
+        {/* AI Summary */}
+        {resource.aiSummary && (
+          <div style={{
+            background: 'var(--cream)',
+            border: '1px solid var(--line)',
+            borderLeft: '3px solid var(--sun)',
+            borderRadius: '8px',
+            padding: '16px 20px',
+            marginBottom: '28px',
+          }}>
+            <div style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px' }}>
+              AI Summary
+            </div>
+            <p style={{ margin: 0, lineHeight: 1.65 }}>{resource.aiSummary}</p>
+          </div>
+        )}
+
+        {/* Transcript (video) */}
+        {resource.type === 'video' && (
+          transcript ? (
+            <div className="reader-transcript-section">
+              <div className="reader-transcript-label">Transcript</div>
+              {transcript.split('\n\n').filter(Boolean).map((para, i) => (
+                <p key={i}>{para}</p>
+              ))}
+            </div>
+          ) : (
+            <div style={{ textAlign: 'center', padding: '40px 24px', border: '1.5px dashed var(--line)', borderRadius: '10px', color: 'var(--text-muted)' }}>
+              <p style={{ margin: '0 0 12px' }}>No transcript yet.</p>
+              <Link href={`/resources/${resource.id}`} className="btn btn-ghost btn-sm">
+                Go back to transcribe
+              </Link>
+            </div>
+          )
+        )}
+
+        {/* Article content */}
         {resource.type === 'article' && (
-          <div>
-            {articleContent ? (
-              <div
-                className="prose prose-sm dark:prose-invert max-w-none [&_img]:rounded [&_a]:text-primary leading-7"
-                dangerouslySetInnerHTML={{ __html: articleContent }}
-              />
-            ) : (
-              <div className="text-center py-8 text-muted-foreground border border-dashed border-border rounded-lg">
-                <p className="text-sm mb-3">Could not extract article content.</p>
-                {resource.url && (
-                  <a href={resource.url} target="_blank" rel="noopener noreferrer">
-                    <Button size="sm" variant="outline">Open original</Button>
-                  </a>
-                )}
-              </div>
-            )}
-          </div>
+          articleContent ? (
+            <div dangerouslySetInnerHTML={{ __html: articleContent }} />
+          ) : (
+            <div style={{ textAlign: 'center', padding: '40px 24px', border: '1.5px dashed var(--line)', borderRadius: '10px', color: 'var(--text-muted)' }}>
+              <p style={{ margin: '0 0 12px' }}>Could not extract article content.</p>
+              {resource.url && (
+                <a href={resource.url} target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-sm">
+                  <ExternalLink size={14} />
+                  Open original
+                </a>
+              )}
+            </div>
+          )
         )}
-      </article>
+
+      </ReaderView>
     </div>
   )
 }

@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Loader2, Sparkles } from 'lucide-react'
 import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
 
 interface TranscribeButtonProps {
   resourceId: number
@@ -25,9 +24,7 @@ export function TranscribeButton({ resourceId, status }: TranscribeButtonProps) 
     try {
       const res = await fetch(`/api/resources/${resourceId}/transcribe`, { method: 'POST' })
       const data = await res.json()
-
       if (!res.ok) throw new Error(data.error ?? 'Transcription failed')
-
       toast.success('Transcript ready!', { id: toastId })
       router.refresh()
     } catch (err) {
@@ -37,23 +34,16 @@ export function TranscribeButton({ resourceId, status }: TranscribeButtonProps) 
     }
   }
 
-  if (isDone) {
-    return (
-      <Button size="sm" variant="outline" onClick={handleTranscribe} disabled={loading}>
-        {loading ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />}
-        Re-transcribe
-      </Button>
-    )
-  }
-
   return (
-    <Button size="sm" onClick={handleTranscribe} disabled={loading || isProcessing}>
-      {loading || isProcessing ? (
-        <Loader2 size={16} className="animate-spin" />
-      ) : (
-        <Sparkles size={16} />
-      )}
-      {isProcessing ? 'Transcribing…' : 'Transcribe'}
-    </Button>
+    <button
+      onClick={handleTranscribe}
+      disabled={loading || isProcessing}
+      className={isDone ? 'btn btn-ghost btn-sm' : 'btn btn-leaf btn-sm'}
+    >
+      {loading || isProcessing
+        ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
+        : <Sparkles size={14} />}
+      {isProcessing ? 'Transcribing…' : isDone ? 'Re-transcribe' : 'Transcribe'}
+    </button>
   )
 }
