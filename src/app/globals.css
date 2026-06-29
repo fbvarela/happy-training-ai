@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* Use .dark class (not media query) for Tailwind dark: utilities */
+@variant dark (&:where(.dark, .dark *));
+
 /* ── Happy Factory Design Tokens ───────────────────────── */
 @theme {
   --color-bark:        #3d2b1f;
