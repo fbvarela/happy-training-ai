@@ -2,8 +2,6 @@
 
 import { useState } from 'react'
 import { Loader2, Sparkles } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import { StreamingText } from './StreamingText'
 import type { Resource, Topic } from '@/lib/db/schema'
 
@@ -39,12 +37,10 @@ export function TopicSynthesis({ topic, resources }: TopicSynthesisProps) {
 
       const reader = res.body.getReader()
       const decoder = new TextDecoder()
-
       while (true) {
         const { done, value } = await reader.read()
         if (done) break
-        const chunk = decoder.decode(value, { stream: true })
-        setText((prev) => prev + chunk)
+        setText((prev) => prev + decoder.decode(value, { stream: true }))
       }
     } catch {
       setText('Failed to generate learning map.')
@@ -53,31 +49,35 @@ export function TopicSynthesis({ topic, resources }: TopicSynthesisProps) {
     }
   }
 
+  if (!triggered) {
+    return (
+      <button
+        onClick={handleSynthesize}
+        disabled={resources.length === 0}
+        className="btn btn-ghost btn-sm"
+      >
+        <Sparkles size={14} />
+        Generate Learning Map
+        {resources.length === 0 && ' (no resources)'}
+      </button>
+    )
+  }
+
   return (
-    <div className="mt-2">
-      {!triggered ? (
-        <Button variant="outline" size="sm" onClick={handleSynthesize} disabled={resources.length === 0}>
-          <Sparkles size={16} />
-          Generate Learning Map
-          {resources.length === 0 && ' (no resources)'}
-        </Button>
+    <div style={{ background: 'var(--cream)', borderRadius: '10px', padding: '14px 16px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+        <Sparkles size={13} style={{ color: 'var(--leaf)' }} />
+        <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+          Learning Map — {topic.name}
+        </span>
+        {loading && <Loader2 size={13} style={{ color: 'var(--text-muted)', animation: 'spin 1s linear infinite' }} />}
+      </div>
+      {text ? (
+        <StreamingText text={text} />
       ) : (
-        <Card>
-          <CardContent className="pt-4">
-            <div className="flex items-center gap-2 mb-3">
-              <Sparkles size={14} className="text-primary" />
-              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                Learning Map — {topic.name}
-              </span>
-              {loading && <Loader2 size={14} className="animate-spin text-muted-foreground" />}
-            </div>
-            {text ? (
-              <StreamingText text={text} />
-            ) : (
-              <p className="text-sm text-muted-foreground">Analyzing {resources.length} resources…</p>
-            )}
-          </CardContent>
-        </Card>
+        <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', margin: 0 }}>
+          Analyzing {resources.length} resources…
+        </p>
       )}
     </div>
   )

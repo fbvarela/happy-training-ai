@@ -22,7 +22,6 @@ export default async function TopicsPage() {
 
       {topics.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-state-icon">📚</div>
           <p>No topics yet.</p>
           <Link href="/topics/new" className="btn btn-ghost btn-sm">Create your first topic</Link>
         </div>

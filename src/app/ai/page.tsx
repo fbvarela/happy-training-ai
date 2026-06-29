@@ -1,7 +1,8 @@
 import Link from 'next/link'
+import { Sparkles, Code2 } from 'lucide-react'
 import { TopBar } from '@/components/layout/TopBar'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { TopicSynthesis } from '@/components/ai/TopicSynthesis'
+import { getTopicIcon } from '@/lib/topics/icons'
 import { db } from '@/lib/db'
 import { resources, topics } from '@/lib/db/schema'
 import { isNull, eq } from 'drizzle-orm'
@@ -16,42 +17,41 @@ export default async function AIPage() {
         description="Topic synthesis powered by Cohere · Snippet explanations powered by Groq"
       />
 
-      <div className="max-w-2xl space-y-6">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Topic Learning Maps</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">
-              Select a topic to generate a learning map — what&apos;s covered, suggested order, and knowledge gaps.
+      <div style={{ maxWidth: '680px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div className="hf-card">
+          <h2 className="hf-card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Sparkles size={16} />
+            Topic Learning Maps
+          </h2>
+          <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '20px' }}>
+            Select a topic to generate a learning map — what&apos;s covered, suggested order, and knowledge gaps.
+          </p>
+          {topicList.length === 0 ? (
+            <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+              No topics yet.{' '}
+              <Link href="/topics/new" style={{ color: 'var(--bark)', textDecoration: 'underline' }}>Create one</Link>
             </p>
-            {topicList.length === 0 ? (
-              <p className="text-sm text-muted-foreground">
-                No topics yet. <Link href="/topics/new" className="underline">Create one</Link>
-              </p>
-            ) : (
-              <div className="space-y-8">
-                {topicList.map((topic) => (
-                  <TopicLoader key={topic.id} topicId={topic.id} />
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              {topicList.map((topic) => (
+                <TopicLoader key={topic.id} topicId={topic.id} />
+              ))}
+            </div>
+          )}
+        </div>
 
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Snippet Explanations</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Open any snippet and click <strong>Explain with AI</strong> to get a step-by-step walkthrough powered by Groq.
-            </p>
-            <Link href="/snippets" className="text-sm text-primary underline mt-2 inline-block">
-              Go to snippets →
-            </Link>
-          </CardContent>
-        </Card>
+        <div className="hf-card">
+          <h2 className="hf-card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Code2 size={16} />
+            Snippet Explanations
+          </h2>
+          <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '12px' }}>
+            Open any snippet and click <strong>Explain with AI</strong> to get a step-by-step walkthrough powered by Groq.
+          </p>
+          <Link href="/snippets" className="btn btn-ghost btn-sm">
+            Go to snippets →
+          </Link>
+        </div>
       </div>
     </div>
   )
@@ -60,19 +60,20 @@ export default async function AIPage() {
 async function TopicLoader({ topicId }: { topicId: number }) {
   const [topic, topicResources] = await Promise.all([
     db.select().from(topics).where(eq(topics.id, topicId)).then((r) => r[0]),
-    db.select().from(resources).where(
-      eq(resources.topicId, topicId)
-    ).then((rows) => rows.filter((r) => r.deletedAt == null)),
+    db.select().from(resources).where(eq(resources.topicId, topicId))
+      .then((rows) => rows.filter((r) => r.deletedAt == null)),
   ])
 
   if (!topic) return null
 
+  const TopicIcon = getTopicIcon(topic.icon)
+
   return (
     <div>
-      <div className="flex items-center gap-2 mb-1">
-        <span>{topic.icon}</span>
-        <span className="font-medium text-sm">{topic.name}</span>
-        <span className="text-xs text-muted-foreground">({topicResources.length} resources)</span>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
+        <TopicIcon size={15} style={{ color: 'var(--bark)', opacity: 0.7 }} />
+        <span style={{ fontWeight: 500, fontSize: '0.9rem' }}>{topic.name}</span>
+        <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>({topicResources.length} resources)</span>
       </div>
       <TopicSynthesis topic={topic} resources={topicResources} />
     </div>
