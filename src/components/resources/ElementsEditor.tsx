@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
-import { Plus, Trash2, Pencil, Check, X, Video, FileText, Newspaper, Paperclip } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { Plus, Trash2, Pencil, Check, X, Video, FileText, Newspaper, Paperclip, BookOpen, Upload, Link as LinkIcon, Loader2 } from 'lucide-react'
+import Link from 'next/link'
 import { toast } from 'sonner'
 import type { ResourceElement } from '@/lib/db/schema'
 
@@ -40,15 +41,18 @@ function SavedRow({
   const [deleting, setDeleting] = useState(false)
 
   const TypeIcon = TYPE_OPTIONS.find(o => o.value === type)?.Icon ?? Paperclip
+  const displayUrl = element.url ?? element.fileUrl ?? '—'
+  const readHref = element.type === 'pdf' && element.fileUrl
+    ? element.fileUrl
+    : `/resources/${resourceId}/read`
 
   async function save() {
-    if (!url.trim()) { toast.error('URL is required'); return }
     setSaving(true)
     try {
       const res = await fetch(`/api/resources/${resourceId}/elements/${element.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: url.trim(), title: title.trim() || null, type }),
+        body: JSON.stringify({ url: url.trim() || null, title: title.trim() || null, type }),
       })
       if (!res.ok) throw new Error()
       const updated = await res.json()
@@ -92,7 +96,7 @@ function SavedRow({
             </div>
           )}
           <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-            {element.url ?? element.fileUrl ?? '—'}
+            {displayUrl}
           </div>
         </div>
         <span className="hf-badge" style={{ fontSize: '0.72rem' }}>{element.type}</span>
@@ -107,6 +111,15 @@ function SavedRow({
           </>
         ) : (
           <>
+            <Link
+              href={readHref}
+              target={element.type === 'pdf' && element.fileUrl ? '_blank' : undefined}
+              className="btn btn-ghost btn-sm"
+              style={{ padding: '4px 8px' }}
+              title="Read / Open"
+            >
+              <BookOpen size={13} />
+            </Link>
             <button onClick={() => setEditing(true)} className="btn btn-ghost btn-sm" style={{ padding: '4px 8px' }} title="Edit">
               <Pencil size={13} />
             </button>
@@ -176,19 +189,47 @@ function NewRow({
   onSaved: (el: ResourceElement) => void
   onCancel: () => void
 }) {
-  const [type, setType] = useState('video')
+  const [mode, setMode] = useState<'file' | 'url'>('file')
+  const [type, setType] = useState('pdf')
   const [url, setUrl] = useState('')
   const [title, setTitle] = useState('')
   const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [uploadedFileUrl, setUploadedFileUrl] = useState<string | null>(null)
+  const [uploadedFileName, setUploadedFileName] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
+  async function handleFile(file: File) {
+    setUploading(true)
+    try {
+      const fd = new FormData()
+      fd.append('file', file)
+      const res = await fetch('/api/elements/upload', { method: 'POST', body: fd })
+      if (!res.ok) throw new Error()
+      const data = await res.json()
+      setUploadedFileUrl(data.fileUrl)
+      setUploadedFileName(file.name)
+      setType(data.type)
+      if (!title) setTitle(file.name.replace(/\.[^.]+$/, ''))
+    } catch {
+      toast.error('Upload failed')
+    } finally {
+      setUploading(false)
+    }
+  }
 
   async function save() {
-    if (!url.trim()) { toast.error('URL is required'); return }
+    if (mode === 'url' && !url.trim()) { toast.error('URL is required'); return }
+    if (mode === 'file' && !uploadedFileUrl) { toast.error('Please select a file'); return }
     setSaving(true)
     try {
+      const body = mode === 'url'
+        ? { url: url.trim(), title: title.trim() || null, type, order }
+        : { fileUrl: uploadedFileUrl, title: title.trim() || null, type, order }
       const res = await fetch(`/api/resources/${resourceId}/elements`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: url.trim(), title: title.trim() || null, type, order }),
+        body: JSON.stringify(body),
       })
       if (!res.ok) throw new Error()
       const el = await res.json()
@@ -200,6 +241,8 @@ function NewRow({
     }
   }
 
+  const canSave = mode === 'url' ? !!url.trim() : !!uploadedFileUrl
+
   return (
     <div style={{
       padding: '14px',
@@ -208,37 +251,107 @@ function NewRow({
       borderRadius: '10px',
       display: 'flex', flexDirection: 'column', gap: '8px',
     }}>
-      <div style={{ display: 'flex', gap: '8px' }}>
-        <select
-          className="hf-input"
-          value={type}
-          onChange={e => setType(e.target.value)}
-          style={{ width: '120px', flexShrink: 0, padding: '6px 8px', fontSize: '0.82rem' }}
+      {/* Mode toggle */}
+      <div style={{ display: 'flex', gap: '6px' }}>
+        <button
+          onClick={() => setMode('file')}
+          className={`btn btn-sm ${mode === 'file' ? 'btn-primary' : 'btn-ghost'}`}
+          style={{ fontSize: '0.78rem' }}
         >
-          {TYPE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-        </select>
-        <input
-          className="hf-input"
-          type="url"
-          placeholder="Paste a URL…"
-          value={url}
-          autoFocus
-          onChange={e => { setUrl(e.target.value); if (e.target.value) setType(detectType(e.target.value)) }}
-          style={{ flex: 1, padding: '6px 10px', fontSize: '0.85rem' }}
-        />
+          <Upload size={12} /> Upload file
+        </button>
+        <button
+          onClick={() => setMode('url')}
+          className={`btn btn-sm ${mode === 'url' ? 'btn-primary' : 'btn-ghost'}`}
+          style={{ fontSize: '0.78rem' }}
+        >
+          <LinkIcon size={12} /> Paste URL
+        </button>
       </div>
-      <input
-        className="hf-input"
-        placeholder="Label (optional)"
-        value={title}
-        onChange={e => setTitle(e.target.value)}
-        style={{ padding: '6px 10px', fontSize: '0.82rem' }}
-      />
+
+      {mode === 'file' ? (
+        <div>
+          <input
+            ref={fileInputRef}
+            type="file"
+            style={{ display: 'none' }}
+            onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f) }}
+          />
+          {uploadedFileUrl ? (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '0.85rem' }}>
+              <Check size={14} style={{ color: 'var(--leaf)' }} />
+              <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'var(--bark)' }}>
+                {uploadedFileName}
+              </span>
+              <button onClick={() => { setUploadedFileUrl(null); setUploadedFileName(null) }} className="btn btn-ghost btn-sm" style={{ padding: '2px 6px' }}>
+                <X size={12} />
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="btn btn-ghost btn-sm"
+              style={{ width: '100%', justifyContent: 'center', border: '1px dashed var(--line)', borderRadius: '8px', padding: '12px', fontSize: '0.85rem' }}
+            >
+              {uploading ? <><Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} /> Uploading…</> : <><Upload size={14} /> Choose file</>}
+            </button>
+          )}
+          <div style={{ marginTop: '6px', display: 'flex', gap: '8px' }}>
+            <select
+              className="hf-input"
+              value={type}
+              onChange={e => setType(e.target.value)}
+              style={{ width: '120px', flexShrink: 0, padding: '6px 8px', fontSize: '0.82rem' }}
+            >
+              {TYPE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+            <input
+              className="hf-input"
+              placeholder="Label (optional)"
+              value={title}
+              autoFocus
+              onChange={e => setTitle(e.target.value)}
+              style={{ flex: 1, padding: '6px 10px', fontSize: '0.82rem' }}
+            />
+          </div>
+        </div>
+      ) : (
+        <>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <select
+              className="hf-input"
+              value={type}
+              onChange={e => setType(e.target.value)}
+              style={{ width: '120px', flexShrink: 0, padding: '6px 8px', fontSize: '0.82rem' }}
+            >
+              {TYPE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+            </select>
+            <input
+              className="hf-input"
+              type="url"
+              placeholder="Paste a URL…"
+              value={url}
+              autoFocus
+              onChange={e => { setUrl(e.target.value); if (e.target.value) setType(detectType(e.target.value)) }}
+              style={{ flex: 1, padding: '6px 10px', fontSize: '0.85rem' }}
+            />
+          </div>
+          <input
+            className="hf-input"
+            placeholder="Label (optional)"
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+            style={{ padding: '6px 10px', fontSize: '0.82rem' }}
+          />
+        </>
+      )}
+
       <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
         <button onClick={onCancel} className="btn btn-ghost btn-sm">
           <X size={13} /> Cancel
         </button>
-        <button onClick={save} disabled={saving || !url.trim()} className="btn btn-primary btn-sm">
+        <button onClick={save} disabled={saving || uploading || !canSave} className="btn btn-primary btn-sm">
           <Check size={13} /> {saving ? 'Adding…' : 'Add'}
         </button>
       </div>
