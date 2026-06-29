@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { BookOpen, Brain, Code, Home, LayoutList } from 'lucide-react'
+import { BookOpen, Brain, Code, GraduationCap, Home, LayoutList } from 'lucide-react'
 import { ThemeToggle } from './ThemeToggle'
 
 const navItems = [
@@ -19,7 +19,7 @@ export function Sidebar() {
   return (
     <aside className="sidebar-nav">
       <Link href="/" className="sidebar-logo">
-        <span>🎓</span>
+        <GraduationCap size={20} />
         Happy Training
       </Link>
 

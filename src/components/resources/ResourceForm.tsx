@@ -90,10 +90,10 @@ export function ResourceForm({ resource, topics }: ResourceFormProps) {
           onChange={(e) => setType(e.target.value as Resource['type'])}
           style={{ cursor: 'pointer' }}
         >
-          <option value="video">🎥 Video</option>
-          <option value="pdf">📄 PDF</option>
-          <option value="article">📰 Article</option>
-          <option value="snippet">💻 Snippet</option>
+          <option value="video">Video</option>
+          <option value="pdf">PDF</option>
+          <option value="article">Article</option>
+          <option value="snippet">Snippet</option>
         </select>
       </div>
 

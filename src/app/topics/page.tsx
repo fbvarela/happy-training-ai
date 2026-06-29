@@ -2,6 +2,7 @@ import Link from 'next/link'
 import { Plus } from 'lucide-react'
 import { TopBar } from '@/components/layout/TopBar'
 import { getTopicWithResourceCount } from '@/lib/topics/queries'
+import { getTopicIcon } from '@/lib/topics/icons'
 
 export default async function TopicsPage() {
   const topics = await getTopicWithResourceCount()
@@ -27,7 +28,9 @@ export default async function TopicsPage() {
         </div>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {topics.map((topic) => (
+          {topics.map((topic) => {
+            const TopicIcon = getTopicIcon(topic.icon)
+            return (
             <Link key={topic.id} href={`/topics/${topic.id}`} className="hf-card-link">
               <div className="hf-card" style={{ height: '100%' }}>
                 <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
@@ -39,13 +42,13 @@ export default async function TopicsPage() {
                       width: '44px',
                       height: '44px',
                       borderRadius: '10px',
-                      fontSize: '1.4rem',
                       flexShrink: 0,
-                      background: (topic.color ?? '#6366f1') + '22',
-                      border: `1.5px solid ${(topic.color ?? '#6366f1')}44`,
+                      background: (topic.color ?? '#4a7c59') + '22',
+                      border: `1.5px solid ${(topic.color ?? '#4a7c59')}44`,
+                      color: topic.color ?? '#4a7c59',
                     }}
                   >
-                    {topic.icon}
+                    <TopicIcon size={20} />
                   </span>
                   <div style={{ minWidth: 0 }}>
                     <div style={{ fontWeight: 600, color: 'var(--bark)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -63,7 +66,8 @@ export default async function TopicsPage() {
                 </div>
               </div>
             </Link>
-          ))}
+            )
+          })}
         </div>
       )}
     </div>

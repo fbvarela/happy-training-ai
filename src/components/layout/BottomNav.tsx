@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { BookOpen, Brain, Code, Home, LayoutList } from 'lucide-react'
+import { BookOpen, Brain, Code, GraduationCap, Home, LayoutList } from 'lucide-react'
 import { ThemeToggleMini } from './ThemeToggle'
 
 const navItems = [
@@ -20,7 +20,7 @@ export function BottomNav() {
     <>
       <nav className="nav-mobile-bar">
         <Link href="/" className="nav-mobile-logo">
-          <span>🎓</span>
+          <GraduationCap size={20} />
           Happy Training
         </Link>
         <ThemeToggleMini />
