@@ -35,7 +35,7 @@ export function Sidebar() {
         })}
       </nav>
 
-      <div className="sidebar-footer">
+      <div className="sidebar-footer" style={{ display: 'flex', justifyContent: 'center' }}>
         <ThemeToggle />
       </div>
     </aside>
