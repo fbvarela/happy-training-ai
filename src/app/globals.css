@@ -106,8 +106,6 @@
 }
 
 @layer base {
-  * { @apply border-border; }
-
   body {
     background: var(--bg);
     color: var(--text);
