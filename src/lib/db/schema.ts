@@ -1,15 +1,15 @@
 import { AnyPgColumn, integer, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core"
 
-export const topics = pgTable("topics", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  slug: text("slug").notNull().unique(),
-  description: text("description"),
-  icon: text("icon").default("📚"),
-  color: text("color").default("#6366f1"),
-  parentId: integer("parent_id").references((): AnyPgColumn => topics.id),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+export const topics = pgTable('topics', {
+  id: serial('id').primaryKey(),
+  name: text('name').notNull(),
+  slug: text('slug').notNull().unique(),
+  description: text('description'),
+  icon: text('icon').default('book'),
+  color: text('color').default('#6366f1'),
+  parentId: integer('parent_id').references((): AnyPgColumn => topics.id),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
 })
 
 export const resources = pgTable("resources", {

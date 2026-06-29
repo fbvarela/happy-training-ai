@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
     name: name.trim(),
     slug: slugify(name),
     description: description?.trim() ?? null,
-    icon: icon ?? '📚',
+    icon: icon ?? 'book',
     color: color ?? '#6366f1',
     parentId: parentId ?? null,
   })

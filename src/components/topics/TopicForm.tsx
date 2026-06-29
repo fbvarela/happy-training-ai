@@ -3,17 +3,13 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
+import { TOPIC_ICONS, DEFAULT_TOPIC_ICON } from '@/lib/topics/icons'
 import type { Topic } from '@/lib/db/schema'
 
-const ICONS = ['📚', '🎯', '💻', '🧠', '🔧', '🎨', '📊', '🚀', '🔬', '📝', '🌐', '⚡']
 const COLORS = [
-  '#6366f1', '#8b5cf6', '#ec4899', '#f43f5e',
-  '#f97316', '#eab308', '#22c55e', '#14b8a6',
-  '#3b82f6', '#06b6d4', '#84cc16', '#a855f7',
+  '#4a7c59', '#3b82f6', '#8b5cf6', '#ec4899',
+  '#f43f5e', '#f97316', '#e8a020', '#14b8a6',
+  '#06b6d4', '#84cc16', '#c46b3a', '#3d2b1f',
 ]
 
 interface TopicFormProps {
@@ -25,8 +21,8 @@ export function TopicForm({ topic }: TopicFormProps) {
   const [loading, setLoading] = useState(false)
   const [name, setName] = useState(topic?.name ?? '')
   const [description, setDescription] = useState(topic?.description ?? '')
-  const [icon, setIcon] = useState(topic?.icon ?? '📚')
-  const [color, setColor] = useState(topic?.color ?? '#6366f1')
+  const [icon, setIcon] = useState(topic?.icon ?? DEFAULT_TOPIC_ICON)
+  const [color, setColor] = useState(topic?.color ?? '#4a7c59')
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -57,11 +53,12 @@ export function TopicForm({ topic }: TopicFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-lg space-y-5">
-      <div className="space-y-1.5">
-        <Label htmlFor="name">Name</Label>
-        <Input
+    <form onSubmit={handleSubmit} style={{ maxWidth: '520px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
+      <div className="field">
+        <label className="input-label" htmlFor="name">Name</label>
+        <input
           id="name"
+          className="hf-input"
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="e.g. TypeScript"
@@ -69,61 +66,82 @@ export function TopicForm({ topic }: TopicFormProps) {
         />
       </div>
 
-      <div className="space-y-1.5">
-        <Label htmlFor="description">Description</Label>
-        <Textarea
+      <div className="field">
+        <label className="input-label" htmlFor="description">Description</label>
+        <textarea
           id="description"
+          className="hf-input"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder="What is this topic about?"
           rows={3}
+          style={{ resize: 'vertical' }}
         />
       </div>
 
-      <div className="space-y-2">
-        <Label>Icon</Label>
-        <div className="flex flex-wrap gap-2">
-          {ICONS.map((i) => (
+      <div className="field">
+        <span className="input-label">Icon</span>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '6px' }}>
+          {Object.entries(TOPIC_ICONS).map(([key, Icon]) => (
             <button
-              key={i}
+              key={key}
               type="button"
-              onClick={() => setIcon(i)}
-              className={`w-9 h-9 rounded text-lg flex items-center justify-center transition-colors ${
-                icon === i ? 'bg-primary text-primary-foreground' : 'bg-muted hover:bg-muted/70'
-              }`}
+              onClick={() => setIcon(key)}
+              aria-label={key}
+              style={{
+                width: '40px',
+                height: '40px',
+                borderRadius: '8px',
+                border: icon === key ? '2px solid var(--bark)' : '1.5px solid var(--line)',
+                background: icon === key ? 'var(--bark)' : 'var(--cream)',
+                color: icon === key ? '#fff' : 'var(--text-muted)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                cursor: 'pointer',
+                transition: 'all 0.14s',
+              }}
             >
-              {i}
+              <Icon size={18} />
             </button>
           ))}
         </div>
       </div>
 
-      <div className="space-y-2">
-        <Label>Color</Label>
-        <div className="flex flex-wrap gap-2">
+      <div className="field">
+        <span className="input-label">Color</span>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '6px' }}>
           {COLORS.map((c) => (
             <button
               key={c}
               type="button"
               onClick={() => setColor(c)}
-              className="w-7 h-7 rounded-full transition-transform hover:scale-110"
+              aria-label={c}
               style={{
-                backgroundColor: c,
+                width: '28px',
+                height: '28px',
+                borderRadius: '50%',
+                border: color === c ? '3px solid var(--bark)' : '2px solid transparent',
                 outline: color === c ? `2px solid ${c}` : 'none',
                 outlineOffset: '2px',
+                background: c,
+                cursor: 'pointer',
+                transition: 'transform 0.14s',
               }}
+              onMouseEnter={e => { e.currentTarget.style.transform = 'scale(1.15)' }}
+              onMouseLeave={e => { e.currentTarget.style.transform = 'scale(1)' }}
             />
           ))}
         </div>
       </div>
 
-      <div className="flex gap-3 pt-2">
-        <Button type="submit" disabled={loading || !name.trim()}>
+      <div style={{ display: 'flex', gap: '10px', paddingTop: '4px' }}>
+        <button type="submit" className="btn btn-primary" disabled={loading || !name.trim()}>
           {loading ? 'Saving…' : topic ? 'Save Changes' : 'Create Topic'}
-        </Button>
-        <Button type="button" variant="outline" onClick={() => router.back()}>
+        </button>
+        <button type="button" className="btn btn-ghost" onClick={() => router.back()}>
           Cancel
-        </Button>
+        </button>
       </div>
     </form>
   )

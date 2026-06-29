@@ -1,25 +1,20 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { BookOpen, ExternalLink, Pencil } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Badge } from '@/components/ui/badge'
-import { Card, CardContent } from '@/components/ui/card'
 import { TopBar } from '@/components/layout/TopBar'
 import { DeleteResourceButton } from '@/components/resources/DeleteResourceButton'
 import { TranscribeButton } from '@/components/resources/TranscribeButton'
 import { getResourceById } from '@/lib/resources/queries'
-
-const TYPE_ICON: Record<string, string> = {
-  video: '🎥',
-  pdf: '📄',
-  article: '📰',
-  snippet: '💻',
-}
+import { getResourceIcon } from '@/lib/resources/icons'
+import { getTopicIcon } from '@/lib/topics/icons'
 
 export default async function ResourceDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const resource = await getResourceById(Number(id))
   if (!resource) notFound()
+
+  const TypeIcon = getResourceIcon(resource.type)
+  const TopicIcon = resource.topicIcon ? getTopicIcon(resource.topicIcon) : null
 
   const readLink =
     resource.type === 'pdf'
@@ -29,92 +24,86 @@ export default async function ResourceDetailPage({ params }: { params: Promise<{
   return (
     <div>
       <TopBar
-        title={`${TYPE_ICON[resource.type] ?? '📎'} ${resource.title}`}
+        title={resource.title}
         description={resource.description ?? undefined}
         actions={
-          <div className="flex gap-2">
-            <Link href={readLink}>
-              <Button size="sm">
-                <BookOpen size={16} />
-                Read
-              </Button>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <Link href={readLink} className="btn btn-primary btn-sm">
+              <BookOpen size={15} />
+              Read
             </Link>
-            <Link href={`/resources/${resource.id}/edit`}>
-              <Button variant="outline" size="sm">
-                <Pencil size={16} />
-                Edit
-              </Button>
+            <Link href={`/resources/${resource.id}/edit`} className="btn btn-ghost btn-sm">
+              <Pencil size={15} />
+              Edit
             </Link>
             <DeleteResourceButton id={resource.id} />
           </div>
         }
       />
 
-      <div className="flex flex-wrap gap-2 mb-6">
-        <Badge variant="secondary">{resource.type}</Badge>
-        {resource.topicName && (
-          <Badge variant="outline">
-            {resource.topicIcon} {resource.topicName}
-          </Badge>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '24px' }}>
+        <span className="hf-badge" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+          <TypeIcon size={12} />
+          {resource.type}
+        </span>
+        {resource.topicName && TopicIcon && (
+          <span className="hf-badge" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+            <TopicIcon size={12} />
+            {resource.topicName}
+          </span>
         )}
         {resource.transcriptStatus === 'done' && (
-          <Badge variant="outline">transcript ready</Badge>
+          <span className="hf-badge hf-badge-leaf">transcript ready</span>
         )}
         {resource.transcriptStatus === 'processing' && (
-          <Badge variant="outline">transcribing…</Badge>
+          <span className="hf-badge">transcribing…</span>
         )}
       </div>
 
-      <div className="grid gap-4 max-w-2xl">
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', maxWidth: '680px' }}>
         {resource.url && (
-          <Card>
-            <CardContent className="pt-4">
-              <p className="text-xs text-muted-foreground mb-1">URL</p>
-              <a
-                href={resource.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-sm text-primary flex items-center gap-1 hover:underline break-all"
-              >
-                {resource.url}
-                <ExternalLink size={12} className="shrink-0" />
-              </a>
-            </CardContent>
-          </Card>
+          <div className="hf-card">
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>URL</div>
+            <a
+              href={resource.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ fontSize: '0.875rem', color: 'var(--bark)', display: 'flex', alignItems: 'center', gap: '4px', wordBreak: 'break-all', textDecoration: 'none' }}
+            >
+              {resource.url}
+              <ExternalLink size={12} style={{ flexShrink: 0 }} />
+            </a>
+          </div>
         )}
 
         {resource.aiSummary && (
-          <Card>
-            <CardContent className="pt-4">
-              <p className="text-xs text-muted-foreground mb-2">AI Summary</p>
-              <p className="text-sm leading-relaxed">{resource.aiSummary}</p>
-            </CardContent>
-          </Card>
+          <div className="hf-card">
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>AI Summary</div>
+            <p style={{ fontSize: '0.9rem', lineHeight: 1.6, margin: 0 }}>{resource.aiSummary}</p>
+          </div>
         )}
 
         {resource.type === 'video' && resource.url && (
-          <Card>
-            <CardContent className="pt-4">
-              <p className="text-xs text-muted-foreground mb-2">Preview</p>
-              <div className="aspect-video rounded overflow-hidden bg-black">
-                <iframe
-                  src={`https://www.youtube.com/embed/${resource.url.match(/(?:v=|youtu\.be\/)([^&?]+)/)?.[1]}`}
-                  className="w-full h-full"
-                  allowFullScreen
-                  title={resource.title}
-                />
-              </div>
-              <div className="mt-3 flex gap-2">
-                <Link href={`/resources/${resource.id}/read`}>
-                  <Button size="sm" variant="outline">View Transcript</Button>
-                </Link>
-                <TranscribeButton resourceId={resource.id} status={resource.transcriptStatus} />
-              </div>
-            </CardContent>
-          </Card>
+          <div className="hf-card">
+            <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginBottom: '8px', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Preview</div>
+            <div style={{ aspectRatio: '16/9', borderRadius: '8px', overflow: 'hidden', background: '#000' }}>
+              <iframe
+                src={`https://www.youtube.com/embed/${resource.url.match(/(?:v=|youtu\.be\/)([^&?]+)/)?.[1]}`}
+                style={{ width: '100%', height: '100%' }}
+                allowFullScreen
+                title={resource.title}
+              />
+            </div>
+            <div style={{ marginTop: '12px', display: 'flex', gap: '8px' }}>
+              <Link href={`/resources/${resource.id}/read`} className="btn btn-ghost btn-sm">
+                View Transcript
+              </Link>
+              <TranscribeButton resourceId={resource.id} status={resource.transcriptStatus} />
+            </div>
+          </div>
         )}
 
-        <div className="text-xs text-muted-foreground">
+        <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
           Added {new Date(resource.createdAt).toLocaleDateString()}
         </div>
       </div>
