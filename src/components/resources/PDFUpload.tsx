@@ -4,10 +4,6 @@ import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Upload } from 'lucide-react'
 import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
-import { Input } from '@/components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import type { Topic } from '@/lib/db/schema'
 
 interface PDFUploadProps {
@@ -68,67 +64,43 @@ export function PDFUpload({ topics }: PDFUploadProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-lg space-y-5">
-      <div className="space-y-2">
-        <Label>PDF File</Label>
+    <form onSubmit={handleSubmit} style={{ maxWidth: '520px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
+      <div className="field" style={{ margin: 0 }}>
+        <label className="input-label">PDF File</label>
         <div
-          className="border-2 border-dashed border-border rounded-lg p-8 text-center cursor-pointer hover:border-primary/50 transition-colors"
+          style={{ border: '2px dashed var(--line)', borderRadius: '10px', padding: '32px', textAlign: 'center', cursor: 'pointer' }}
           onClick={() => inputRef.current?.click()}
-          onDragOver={(e) => e.preventDefault()}
-          onDrop={(e) => {
-            e.preventDefault()
-            const f = e.dataTransfer.files[0]
-            if (f?.type === 'application/pdf') handleFile(f)
-          }}
+          onDragOver={e => e.preventDefault()}
+          onDrop={e => { e.preventDefault(); const f = e.dataTransfer.files[0]; if (f?.type === 'application/pdf') handleFile(f) }}
         >
-          <Upload size={24} className="mx-auto mb-2 text-muted-foreground" />
+          <Upload size={22} style={{ margin: '0 auto 8px', color: 'var(--text-muted)', display: 'block' }} />
           {file ? (
-            <p className="text-sm font-medium">{file.name}</p>
+            <p style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--bark)' }}>{file.name}</p>
           ) : (
-            <p className="text-sm text-muted-foreground">Drop a PDF here or click to browse</p>
+            <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>Drop a PDF here or click to browse</p>
           )}
-          <input
-            ref={inputRef}
-            type="file"
-            accept="application/pdf"
-            className="hidden"
-            onChange={(e) => {
-              const f = e.target.files?.[0]
-              if (f) handleFile(f)
-            }}
-          />
+          <input ref={inputRef} type="file" accept="application/pdf" style={{ display: 'none' }} onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f) }} />
         </div>
       </div>
 
-      <div className="space-y-1.5">
-        <Label htmlFor="pdf-title">Title</Label>
-        <Input
-          id="pdf-title"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Document title"
-        />
+      <div className="field" style={{ margin: 0 }}>
+        <label className="input-label" htmlFor="pdf-title">Title</label>
+        <input id="pdf-title" className="hf-input" value={title} onChange={e => setTitle(e.target.value)} placeholder="Document title" />
       </div>
 
-      <div className="space-y-1.5">
-        <Label>Topic</Label>
-        <Select value={topicId ?? undefined} onValueChange={setTopicId}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select a topic (optional)" />
-          </SelectTrigger>
-          <SelectContent>
-            {topics.map((t) => (
-              <SelectItem key={t.id} value={String(t.id)}>
-                {t.icon} {t.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <div className="field" style={{ margin: 0 }}>
+        <label className="input-label" htmlFor="pdf-topic">Topic</label>
+        <select id="pdf-topic" className="hf-input" value={topicId ?? ''} onChange={e => setTopicId(e.target.value || null)} style={{ cursor: 'pointer' }}>
+          <option value="">— No topic —</option>
+          {topics.map(t => <option key={t.id} value={String(t.id)}>{t.icon} {t.name}</option>)}
+        </select>
       </div>
 
-      <Button type="submit" disabled={!file || loading}>
-        {loading ? 'Uploading…' : 'Upload PDF'}
-      </Button>
+      <div>
+        <button type="submit" disabled={!file || loading} className="btn btn-primary">
+          {loading ? 'Uploading…' : 'Upload PDF'}
+        </button>
+      </div>
     </form>
   )
 }

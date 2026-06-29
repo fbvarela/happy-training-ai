@@ -2,36 +2,36 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft, ExternalLink } from 'lucide-react'
 import { getResourceById } from '@/lib/resources/queries'
+import { getElementsByResourceId } from '@/lib/resources/elementQueries'
 import { extractArticle } from '@/lib/resources/articleExtract'
 import { ReaderView } from '@/components/resources/ReaderView'
+import { TranscribeButton } from '@/components/resources/TranscribeButton'
+import type { ResourceElement } from '@/lib/db/schema'
 
 export default async function ReadPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const resource = await getResourceById(Number(id))
+  const [resource, elements] = await Promise.all([
+    getResourceById(Number(id)),
+    getElementsByResourceId(Number(id)),
+  ])
   if (!resource) notFound()
 
-  let articleContent: string | null = null
-  if (resource.type === 'article' && resource.url) {
-    const article = await extractArticle(resource.url)
-    articleContent = article?.content ?? null
-  }
-
-  const transcript = resource.transcript
+  // Fallback: if no elements, synthesise one from the resource itself
+  const items: ResourceElement[] = elements.length > 0
+    ? elements
+    : resource.url
+      ? [{ id: -1, resourceId: resource.id, type: resource.type, url: resource.url, fileUrl: resource.fileUrl, title: null, order: 0, transcript: resource.transcript, transcriptStatus: resource.transcriptStatus, createdAt: resource.createdAt }]
+      : []
 
   return (
     <div>
-      <div style={{ marginBottom: '28px', display: 'flex', alignItems: 'center', gap: '16px' }}>
+      <div style={{ marginBottom: '28px', display: 'flex', alignItems: 'center', gap: '12px' }}>
         <Link href={`/resources/${resource.id}`} className="btn btn-ghost btn-sm">
           <ArrowLeft size={15} />
           Back
         </Link>
         {resource.url && (
-          <a
-            href={resource.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="btn btn-ghost btn-sm"
-          >
+          <a href={resource.url} target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-sm">
             <ExternalLink size={14} />
             Open original
           </a>
@@ -39,20 +39,6 @@ export default async function ReadPage({ params }: { params: Promise<{ id: strin
       </div>
 
       <ReaderView title={resource.title} description={resource.description ?? undefined}>
-
-        {/* Video embed */}
-        {resource.type === 'video' && resource.url && (
-          <div style={{ marginBottom: '32px' }}>
-            <div style={{ aspectRatio: '16/9', borderRadius: '10px', overflow: 'hidden', background: '#000', marginBottom: '20px' }}>
-              <iframe
-                src={`https://www.youtube.com/embed/${resource.url.match(/(?:v=|youtu\.be\/)([^&?]+)/)?.[1]}`}
-                style={{ width: '100%', height: '100%' }}
-                allowFullScreen
-                title={resource.title}
-              />
-            </div>
-          </div>
-        )}
 
         {/* AI Summary */}
         {resource.aiSummary && (
@@ -62,7 +48,7 @@ export default async function ReadPage({ params }: { params: Promise<{ id: strin
             borderLeft: '3px solid var(--sun)',
             borderRadius: '8px',
             padding: '16px 20px',
-            marginBottom: '28px',
+            marginBottom: '32px',
           }}>
             <div style={{ fontSize: '0.72rem', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px' }}>
               AI Summary
@@ -71,43 +57,130 @@ export default async function ReadPage({ params }: { params: Promise<{ id: strin
           </div>
         )}
 
-        {/* Transcript (video) */}
-        {resource.type === 'video' && (
-          transcript ? (
-            <div className="reader-transcript-section">
-              <div className="reader-transcript-label">Transcript</div>
-              {transcript.split('\n\n').filter(Boolean).map((para, i) => (
-                <p key={i}>{para}</p>
-              ))}
-            </div>
-          ) : (
-            <div style={{ textAlign: 'center', padding: '40px 24px', border: '1.5px dashed var(--line)', borderRadius: '10px', color: 'var(--text-muted)' }}>
-              <p style={{ margin: '0 0 12px' }}>No transcript yet.</p>
-              <Link href={`/resources/${resource.id}`} className="btn btn-ghost btn-sm">
-                Go back to transcribe
-              </Link>
-            </div>
-          )
-        )}
+        {/* Elements rendered in order */}
+        {items.map((el, idx) => (
+          <ElementBlock key={el.id} element={el} index={idx} total={items.length} />
+        ))}
 
-        {/* Article content */}
-        {resource.type === 'article' && (
-          articleContent ? (
-            <div dangerouslySetInnerHTML={{ __html: articleContent }} />
-          ) : (
-            <div style={{ textAlign: 'center', padding: '40px 24px', border: '1.5px dashed var(--line)', borderRadius: '10px', color: 'var(--text-muted)' }}>
-              <p style={{ margin: '0 0 12px' }}>Could not extract article content.</p>
-              {resource.url && (
-                <a href={resource.url} target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-sm">
-                  <ExternalLink size={14} />
-                  Open original
-                </a>
-              )}
-            </div>
-          )
+        {items.length === 0 && (
+          <div style={{ textAlign: 'center', padding: '48px 24px', border: '1.5px dashed var(--line)', borderRadius: '10px', color: 'var(--text-muted)' }}>
+            <p style={{ margin: '0 0 12px' }}>No elements yet. Add videos, PDFs or articles on the resource page.</p>
+            <Link href={`/resources/${resource.id}`} className="btn btn-ghost btn-sm">
+              Go back
+            </Link>
+          </div>
         )}
 
       </ReaderView>
+    </div>
+  )
+}
+
+async function ElementBlock({ element, index, total }: { element: ResourceElement; index: number; total: number }) {
+  const showDivider = index > 0
+
+  if (element.type === 'video') {
+    const ytId = element.url?.match(/(?:v=|youtu\.be\/)([^&?]+)/)?.[1]
+    return (
+      <div style={{ marginBottom: index < total - 1 ? '40px' : 0 }}>
+        {showDivider && <hr style={{ border: 'none', borderTop: '1px solid var(--line)', margin: '0 0 32px' }} />}
+        {element.title && (
+          <h2 style={{ fontFamily: '"Fraunces", serif', fontSize: '1.15em', color: 'var(--bark)', marginBottom: '14px' }}>
+            {element.title}
+          </h2>
+        )}
+        {ytId && (
+          <div style={{ aspectRatio: '16/9', borderRadius: '10px', overflow: 'hidden', background: '#000', marginBottom: '16px' }}>
+            <iframe
+              src={`https://www.youtube.com/embed/${ytId}`}
+              style={{ width: '100%', height: '100%' }}
+              allowFullScreen
+              title={element.title ?? 'Video'}
+            />
+          </div>
+        )}
+        <div style={{ display: 'flex', gap: '8px', marginBottom: element.transcript ? '24px' : 0 }}>
+          {element.url && (
+            <a href={element.url} target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-sm">
+              <ExternalLink size={13} />
+              Open on YouTube
+            </a>
+          )}
+          {element.id > 0 && (
+            <TranscribeButton resourceId={element.id} status={element.transcriptStatus} isElement />
+          )}
+        </div>
+        {element.transcript && (
+          <div className="reader-transcript-section">
+            <div className="reader-transcript-label">Transcript</div>
+            {element.transcript.split('\n\n').filter(Boolean).map((para, i) => (
+              <p key={i}>{para}</p>
+            ))}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  if (element.type === 'pdf') {
+    return (
+      <div style={{ marginBottom: index < total - 1 ? '40px' : 0 }}>
+        {showDivider && <hr style={{ border: 'none', borderTop: '1px solid var(--line)', margin: '0 0 32px' }} />}
+        {element.title && (
+          <h2 style={{ fontFamily: '"Fraunces", serif', fontSize: '1.15em', color: 'var(--bark)', marginBottom: '14px' }}>
+            {element.title}
+          </h2>
+        )}
+        <iframe
+          src={element.fileUrl ?? element.url ?? ''}
+          style={{ width: '100%', height: '780px', border: '1px solid var(--line)', borderRadius: '10px' }}
+          title={element.title ?? 'PDF'}
+        />
+      </div>
+    )
+  }
+
+  if (element.type === 'article') {
+    let html: string | null = null
+    if (element.url) {
+      const article = await extractArticle(element.url)
+      html = article?.content ?? null
+    }
+    return (
+      <div style={{ marginBottom: index < total - 1 ? '40px' : 0 }}>
+        {showDivider && <hr style={{ border: 'none', borderTop: '1px solid var(--line)', margin: '0 0 32px' }} />}
+        {element.title && (
+          <h2 style={{ fontFamily: '"Fraunces", serif', fontSize: '1.15em', color: 'var(--bark)', marginBottom: '14px' }}>
+            {element.title}
+          </h2>
+        )}
+        {html ? (
+          <div dangerouslySetInnerHTML={{ __html: html }} />
+        ) : (
+          <div style={{ textAlign: 'center', padding: '32px', border: '1.5px dashed var(--line)', borderRadius: '10px', color: 'var(--text-muted)' }}>
+            <p style={{ margin: '0 0 10px' }}>Could not extract article.</p>
+            {element.url && (
+              <a href={element.url} target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-sm">
+                <ExternalLink size={13} />
+                Open original
+              </a>
+            )}
+          </div>
+        )}
+      </div>
+    )
+  }
+
+  // generic file
+  return (
+    <div style={{ marginBottom: index < total - 1 ? '40px' : 0 }}>
+      {showDivider && <hr style={{ border: 'none', borderTop: '1px solid var(--line)', margin: '0 0 32px' }} />}
+      {element.url && (
+        <a href={element.fileUrl ?? element.url} target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-sm">
+          <ExternalLink size={13} />
+          {element.title ?? 'Open file'}
+        </a>
+      )}
     </div>
   )
 }

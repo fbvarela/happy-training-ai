@@ -1,16 +1,21 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { BookOpen, ExternalLink, Pencil } from 'lucide-react'
+import { BookOpen, ExternalLink, Pencil, Plus } from 'lucide-react'
 import { TopBar } from '@/components/layout/TopBar'
 import { DeleteResourceButton } from '@/components/resources/DeleteResourceButton'
 import { TranscribeButton } from '@/components/resources/TranscribeButton'
+import { ElementsEditor } from '@/components/resources/ElementsEditor'
 import { getResourceById } from '@/lib/resources/queries'
+import { getElementsByResourceId } from '@/lib/resources/elementQueries'
 import { getResourceIcon } from '@/lib/resources/icons'
 import { getTopicIcon } from '@/lib/topics/icons'
 
 export default async function ResourceDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
-  const resource = await getResourceById(Number(id))
+  const [resource, elements] = await Promise.all([
+    getResourceById(Number(id)),
+    getElementsByResourceId(Number(id)),
+  ])
   if (!resource) notFound()
 
   const TypeIcon = getResourceIcon(resource.type)
@@ -106,6 +111,22 @@ export default async function ResourceDetailPage({ params }: { params: Promise<{
         <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>
           Added {new Date(resource.createdAt).toLocaleDateString()}
         </div>
+      </div>
+
+      {/* Elements */}
+      <div style={{ marginTop: '32px', maxWidth: '680px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+          <h2 style={{ margin: 0, fontSize: '0.9rem', fontWeight: 700, color: 'var(--bark)', fontFamily: '"Fraunces", serif' }}>
+            Elements
+          </h2>
+          {elements.length > 0 && (
+            <Link href={`/resources/${resource.id}/read`} className="btn btn-primary btn-sm">
+              <BookOpen size={14} />
+              Read all
+            </Link>
+          )}
+        </div>
+        <ElementsEditor resourceId={resource.id} initialElements={elements} />
       </div>
     </div>
   )

@@ -1,0 +1,287 @@
+'use client'
+
+import { useState } from 'react'
+import { Plus, Trash2, Pencil, Check, X, Video, FileText, Newspaper, Paperclip } from 'lucide-react'
+import { toast } from 'sonner'
+import type { ResourceElement } from '@/lib/db/schema'
+
+const TYPE_OPTIONS = [
+  { value: 'video',   label: 'Video',   Icon: Video },
+  { value: 'pdf',     label: 'PDF',     Icon: FileText },
+  { value: 'article', label: 'Article', Icon: Newspaper },
+  { value: 'file',    label: 'File',    Icon: Paperclip },
+]
+
+function detectType(url: string): string {
+  if (/youtube\.com|youtu\.be/.test(url)) return 'video'
+  if (/\.pdf$/i.test(url)) return 'pdf'
+  if (url.startsWith('http')) return 'article'
+  return 'file'
+}
+
+/* ─── Saved element row (read + edit mode) ─── */
+function SavedRow({
+  element,
+  resourceId,
+  onUpdate,
+  onDelete,
+}: {
+  element: ResourceElement
+  resourceId: number
+  onUpdate: (updated: ResourceElement) => void
+  onDelete: (id: number) => void
+}) {
+  const [editing, setEditing] = useState(false)
+  const [type, setType] = useState(element.type)
+  const [url, setUrl] = useState(element.url ?? '')
+  const [title, setTitle] = useState(element.title ?? '')
+  const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+
+  const TypeIcon = TYPE_OPTIONS.find(o => o.value === type)?.Icon ?? Paperclip
+
+  async function save() {
+    if (!url.trim()) { toast.error('URL is required'); return }
+    setSaving(true)
+    try {
+      const res = await fetch(`/api/resources/${resourceId}/elements/${element.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: url.trim(), title: title.trim() || null, type }),
+      })
+      if (!res.ok) throw new Error()
+      const updated = await res.json()
+      onUpdate(updated)
+      setEditing(false)
+      toast.success('Element saved')
+    } catch {
+      toast.error('Failed to save')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function remove() {
+    if (!confirm('Remove this element?')) return
+    setDeleting(true)
+    try {
+      await fetch(`/api/resources/${resourceId}/elements/${element.id}`, { method: 'DELETE' })
+      onDelete(element.id)
+      toast.success('Element removed')
+    } catch {
+      toast.error('Failed to remove')
+      setDeleting(false)
+    }
+  }
+
+  if (!editing) {
+    return (
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: '10px',
+        padding: '12px 14px',
+        background: 'var(--cream)',
+        border: '1.5px solid var(--line)',
+        borderRadius: '10px',
+      }}>
+        <TypeIcon size={16} style={{ color: 'var(--bark)', flexShrink: 0, opacity: 0.65 }} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          {element.title && (
+            <div style={{ fontWeight: 600, fontSize: '0.875rem', color: 'var(--bark)', marginBottom: '2px' }}>
+              {element.title}
+            </div>
+          )}
+          <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {element.url ?? element.fileUrl ?? '—'}
+          </div>
+        </div>
+        <span className="hf-badge" style={{ fontSize: '0.72rem' }}>{element.type}</span>
+        <button onClick={() => setEditing(true)} className="btn btn-ghost btn-sm" style={{ padding: '4px 8px' }} title="Edit">
+          <Pencil size={13} />
+        </button>
+        <button onClick={remove} disabled={deleting} className="btn btn-danger btn-sm" style={{ padding: '4px 8px' }} title="Delete">
+          <Trash2 size={13} />
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div style={{
+      padding: '14px',
+      background: 'var(--cream)',
+      border: '1.5px solid var(--bark)',
+      borderRadius: '10px',
+      display: 'flex', flexDirection: 'column', gap: '8px',
+    }}>
+      <div style={{ display: 'flex', gap: '8px' }}>
+        <select
+          className="hf-input"
+          value={type}
+          onChange={e => setType(e.target.value)}
+          style={{ width: '120px', flexShrink: 0, padding: '6px 8px', fontSize: '0.82rem' }}
+        >
+          {TYPE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+        </select>
+        <input
+          className="hf-input"
+          type="url"
+          placeholder="URL"
+          value={url}
+          onChange={e => { setUrl(e.target.value); if (e.target.value) setType(detectType(e.target.value)) }}
+          style={{ flex: 1, padding: '6px 10px', fontSize: '0.85rem' }}
+        />
+      </div>
+      <input
+        className="hf-input"
+        placeholder="Label (optional, e.g. 'Lecture slides')"
+        value={title}
+        onChange={e => setTitle(e.target.value)}
+        style={{ padding: '6px 10px', fontSize: '0.82rem' }}
+      />
+      <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
+        <button onClick={() => { setEditing(false); setUrl(element.url ?? ''); setTitle(element.title ?? ''); setType(element.type) }} className="btn btn-ghost btn-sm">
+          <X size={13} /> Cancel
+        </button>
+        <button onClick={save} disabled={saving || !url.trim()} className="btn btn-primary btn-sm">
+          <Check size={13} /> {saving ? 'Saving…' : 'Save'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+/* ─── New (unsaved) element row ─── */
+function NewRow({
+  resourceId,
+  order,
+  onSaved,
+  onCancel,
+}: {
+  resourceId: number
+  order: number
+  onSaved: (el: ResourceElement) => void
+  onCancel: () => void
+}) {
+  const [type, setType] = useState('video')
+  const [url, setUrl] = useState('')
+  const [title, setTitle] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  async function save() {
+    if (!url.trim()) { toast.error('URL is required'); return }
+    setSaving(true)
+    try {
+      const res = await fetch(`/api/resources/${resourceId}/elements`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: url.trim(), title: title.trim() || null, type, order }),
+      })
+      if (!res.ok) throw new Error()
+      const el = await res.json()
+      onSaved(el)
+      toast.success('Element added')
+    } catch {
+      toast.error('Failed to add element')
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div style={{
+      padding: '14px',
+      background: 'var(--cream)',
+      border: '1.5px dashed var(--sun)',
+      borderRadius: '10px',
+      display: 'flex', flexDirection: 'column', gap: '8px',
+    }}>
+      <div style={{ display: 'flex', gap: '8px' }}>
+        <select
+          className="hf-input"
+          value={type}
+          onChange={e => setType(e.target.value)}
+          style={{ width: '120px', flexShrink: 0, padding: '6px 8px', fontSize: '0.82rem' }}
+        >
+          {TYPE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+        </select>
+        <input
+          className="hf-input"
+          type="url"
+          placeholder="Paste a URL…"
+          value={url}
+          autoFocus
+          onChange={e => { setUrl(e.target.value); if (e.target.value) setType(detectType(e.target.value)) }}
+          style={{ flex: 1, padding: '6px 10px', fontSize: '0.85rem' }}
+        />
+      </div>
+      <input
+        className="hf-input"
+        placeholder="Label (optional)"
+        value={title}
+        onChange={e => setTitle(e.target.value)}
+        style={{ padding: '6px 10px', fontSize: '0.82rem' }}
+      />
+      <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
+        <button onClick={onCancel} className="btn btn-ghost btn-sm">
+          <X size={13} /> Cancel
+        </button>
+        <button onClick={save} disabled={saving || !url.trim()} className="btn btn-primary btn-sm">
+          <Check size={13} /> {saving ? 'Adding…' : 'Add'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+/* ─── Main editor ─── */
+interface Props {
+  resourceId: number
+  initialElements: ResourceElement[]
+}
+
+export function ElementsEditor({ resourceId, initialElements }: Props) {
+  const [elements, setElements] = useState<ResourceElement[]>(initialElements)
+  const [addingNew, setAddingNew] = useState(false)
+
+  function handleUpdate(updated: ResourceElement) {
+    setElements(prev => prev.map(e => e.id === updated.id ? updated : e))
+  }
+
+  function handleDelete(id: number) {
+    setElements(prev => prev.filter(e => e.id !== id))
+  }
+
+  function handleSaved(el: ResourceElement) {
+    setElements(prev => [...prev, el])
+    setAddingNew(false)
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      {elements.map(el => (
+        <SavedRow
+          key={el.id}
+          element={el}
+          resourceId={resourceId}
+          onUpdate={handleUpdate}
+          onDelete={handleDelete}
+        />
+      ))}
+
+      {addingNew && (
+        <NewRow
+          resourceId={resourceId}
+          order={elements.length}
+          onSaved={handleSaved}
+          onCancel={() => setAddingNew(false)}
+        />
+      )}
+
+      {!addingNew && (
+        <button onClick={() => setAddingNew(true)} className="btn btn-ghost btn-sm" style={{ alignSelf: 'flex-start', marginTop: '4px' }}>
+          <Plus size={14} />
+          Add element
+        </button>
+      )}
+    </div>
+  )
+}

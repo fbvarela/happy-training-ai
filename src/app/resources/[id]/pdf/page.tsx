@@ -1,7 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
-import { Button } from '@/components/ui/button'
 import { PDFViewer } from '@/components/pdf/PDFViewer'
 import { getResourceById } from '@/lib/resources/queries'
 
@@ -15,14 +14,12 @@ export default async function PDFPage({ params }: { params: Promise<{ id: string
 
   return (
     <div>
-      <div className="mb-4 flex items-center gap-3">
-        <Link href={`/resources/${resource.id}`}>
-          <Button variant="ghost" size="sm" className="pl-0">
-            <ArrowLeft size={16} />
-            Back
-          </Button>
+      <div style={{ marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <Link href={`/resources/${resource.id}`} className="btn btn-ghost btn-sm">
+          <ArrowLeft size={15} />
+          Back
         </Link>
-        <h1 className="font-semibold truncate">{resource.title}</h1>
+        <h1 style={{ fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{resource.title}</h1>
       </div>
 
       <PDFViewer url={pdfUrl} title={resource.title} />

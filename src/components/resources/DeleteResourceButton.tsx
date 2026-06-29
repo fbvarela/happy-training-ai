@@ -4,15 +4,13 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
 
 export function DeleteResourceButton({ id }: { id: number }) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
 
   async function handleDelete() {
-    if (!confirm('Delete this resource?')) return
-
+    if (!confirm('Delete this resource and all its elements?')) return
     setLoading(true)
     try {
       const res = await fetch(`/api/resources/${id}`, { method: 'DELETE' })
@@ -27,9 +25,9 @@ export function DeleteResourceButton({ id }: { id: number }) {
   }
 
   return (
-    <Button variant="destructive" size="sm" onClick={handleDelete} disabled={loading}>
-      <Trash2 size={16} />
+    <button onClick={handleDelete} disabled={loading} className="btn btn-danger btn-sm">
+      <Trash2 size={14} />
       {loading ? 'Deleting…' : 'Delete'}
-    </Button>
+    </button>
   )
 }

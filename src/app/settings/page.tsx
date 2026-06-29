@@ -1,44 +1,35 @@
 import { TopBar } from '@/components/layout/TopBar'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
 
 export default function SettingsPage() {
   return (
     <div>
       <TopBar title="Settings" description="Configure API keys and preferences" />
 
-      <div className="max-w-lg space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">AI API Keys</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="groq">Groq API Key</Label>
-              <Input id="groq" type="password" placeholder="gsk_..." disabled value="Set in .env.local" />
-              <p className="text-xs text-muted-foreground">Used for transcription, snippet explain, and Q&A.</p>
+      <div style={{ maxWidth: '520px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        <div className="hf-card">
+          <h2 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '16px', color: 'var(--bark)' }}>AI API Keys</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            <div className="field" style={{ margin: 0 }}>
+              <label className="input-label" htmlFor="groq">Groq API Key</label>
+              <input id="groq" className="hf-input" type="password" placeholder="gsk_..." disabled value="Set in .env.local" />
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>Used for transcription, snippet explain, and Q&amp;A.</p>
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="cohere">Cohere API Key</Label>
-              <Input id="cohere" type="password" placeholder="..." disabled value="Set in .env.local" />
-              <p className="text-xs text-muted-foreground">Used for semantic search and topic synthesis.</p>
+            <div className="field" style={{ margin: 0 }}>
+              <label className="input-label" htmlFor="cohere">Cohere API Key</label>
+              <input id="cohere" className="hf-input" type="password" placeholder="..." disabled value="Set in .env.local" />
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>Used for semantic search and topic synthesis.</p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Database</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              Using local SQLite database at <code className="text-xs bg-muted px-1 py-0.5 rounded">local.db</code>.
-              Configure <code className="text-xs bg-muted px-1 py-0.5 rounded">TURSO_DATABASE_URL</code> in{' '}
-              <code className="text-xs bg-muted px-1 py-0.5 rounded">.env.local</code> to use a remote Turso database.
-            </p>
-          </CardContent>
-        </Card>
+        <div className="hf-card">
+          <h2 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '10px', color: 'var(--bark)' }}>Database</h2>
+          <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', lineHeight: 1.6 }}>
+            Using Neon PostgreSQL. Configure{' '}
+            <code style={{ fontSize: '0.8rem', background: 'var(--cream)', padding: '1px 5px', borderRadius: '4px', border: '1px solid var(--line)' }}>DATABASE_URL</code>{' '}
+            in <code style={{ fontSize: '0.8rem', background: 'var(--cream)', padding: '1px 5px', borderRadius: '4px', border: '1px solid var(--line)' }}>.env.local</code>.
+          </p>
+        </div>
       </div>
     </div>
   )

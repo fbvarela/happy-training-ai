@@ -8,9 +8,10 @@ import { toast } from 'sonner'
 interface TranscribeButtonProps {
   resourceId: number
   status: string | null
+  isElement?: boolean
 }
 
-export function TranscribeButton({ resourceId, status }: TranscribeButtonProps) {
+export function TranscribeButton({ resourceId, status, isElement }: TranscribeButtonProps) {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
 
@@ -19,10 +20,14 @@ export function TranscribeButton({ resourceId, status }: TranscribeButtonProps) 
 
   async function handleTranscribe() {
     setLoading(true)
-    const toastId = toast.loading('Transcribing video… this may take 20–30 seconds')
+    const toastId = toast.loading('Transcribing… this may take 20–30 seconds')
 
     try {
-      const res = await fetch(`/api/resources/${resourceId}/transcribe`, { method: 'POST' })
+      const endpoint = isElement
+        ? `/api/elements/${resourceId}/transcribe`
+        : `/api/resources/${resourceId}/transcribe`
+
+      const res = await fetch(endpoint, { method: 'POST' })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Transcription failed')
       toast.success('Transcript ready!', { id: toastId })

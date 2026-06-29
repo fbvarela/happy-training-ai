@@ -4,7 +4,6 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
 
 export function DeleteSnippetButton({ id }: { id: number }) {
   const router = useRouter()
@@ -26,9 +25,9 @@ export function DeleteSnippetButton({ id }: { id: number }) {
   }
 
   return (
-    <Button variant="destructive" size="sm" onClick={handleDelete} disabled={loading}>
-      <Trash2 size={16} />
+    <button onClick={handleDelete} disabled={loading} className="btn btn-danger btn-sm">
+      <Trash2 size={14} />
       {loading ? 'Deleting…' : 'Delete'}
-    </Button>
+    </button>
   )
 }
