@@ -4,7 +4,7 @@ import { useRef, useState } from 'react'
 import {
   Plus, Trash2, Pencil, Check, X,
   Video, FileText, Newspaper, Paperclip,
-  Upload, Link as LinkIcon, Loader2, ExternalLink,
+  Upload, Link as LinkIcon, Loader2, ExternalLink, ChevronDown, ChevronUp,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import type { ResourceElement } from '@/lib/db/schema'
@@ -129,6 +129,7 @@ function ElementSection({
   const [saving, setSaving] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [pdfVisible, setPdfVisible] = useState(false)
 
   const TypeIcon = TYPE_OPTIONS.find(o => o.value === element.type)?.Icon ?? Paperclip
 
@@ -252,7 +253,19 @@ function ElementSection({
 
       {/* Full inline content */}
       {element.type === 'video' && <VideoEmbed element={element} />}
-      {element.type === 'pdf' && <PdfEmbed element={element} />}
+      {element.type === 'pdf' && (
+        <>
+          <button
+            onClick={() => setPdfVisible(v => !v)}
+            className="btn btn-ghost btn-sm"
+            style={{ alignSelf: 'flex-start', fontSize: '0.78rem', marginBottom: pdfVisible ? '10px' : 0 }}
+          >
+            {pdfVisible ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
+            {pdfVisible ? 'Hide PDF' : 'Show PDF'}
+          </button>
+          {pdfVisible && <PdfEmbed element={element} />}
+        </>
+      )}
       {element.type === 'article' && <ArticleContent element={element} />}
       {element.type === 'file' && <FileContent element={element} />}
 
@@ -299,7 +312,7 @@ function AddForm({
     try {
       const fd = new FormData()
       fd.append('file', file)
-      const res = await fetch('/api/elements/upload', { method: 'POST', body: fd })
+      const res = await fetch('/api/resources/upload', { method: 'POST', body: fd })
       if (!res.ok) throw new Error()
       const data = await res.json()
       const ext = file.name.slice(file.name.lastIndexOf('.')).toLowerCase()

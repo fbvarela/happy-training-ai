@@ -204,7 +204,7 @@ function NewRow({
     try {
       const fd = new FormData()
       fd.append('file', file)
-      const res = await fetch('/api/elements/upload', { method: 'POST', body: fd })
+      const res = await fetch('/api/resources/upload', { method: 'POST', body: fd })
       if (!res.ok) throw new Error()
       const data = await res.json()
       setUploadedFileUrl(data.fileUrl)
