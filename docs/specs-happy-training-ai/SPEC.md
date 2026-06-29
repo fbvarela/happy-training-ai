@@ -40,6 +40,12 @@ Resources are the core content unit. Types: `video`, `pdf`, `article`, `snippet`
 
 **Key routes:** `app/resources/page.tsx`, `app/resources/[id]/page.tsx`, `app/resources/new/page.tsx`
 
+**Resource elements API:**
+- `GET/POST  /api/resources/[id]/elements` — list or add elements to a resource
+- `PATCH/DELETE /api/resources/[id]/elements/[elementId]` — update or remove an element
+- `POST /api/elements/[elementId]/transcribe` — transcribe a video element (parallel to resource-level transcribe)
+- `TranscribeButton` accepts optional `isElement` prop to route to the element endpoint
+
 ### 2.3 YouTube Transcription Pipeline
 
 Mirrors the Happy News AI transcription system.
@@ -114,19 +120,31 @@ topics
   id, name, slug, description, icon, color,
   parent_id (nullable → self-ref for nesting), created_at, updated_at
 
-resources
-  id, topic_id (FK → topics), type (video/pdf/article/snippet),
+resources                          ← learning unit / container
+  id, topic_id (FK → topics),
+  type (video/pdf/article/snippet), -- legacy single-type; elements[] is the new way
   title, description, url (nullable), file_url (nullable),
   thumbnail_url, tags (text[]),
   transcript (text, nullable), transcript_status (pending/processing/done/failed),
   ai_summary (text, nullable),
   created_at, updated_at, deleted_at (soft delete)
 
+resource_elements                  ← one-to-many: a resource bundles multiple media items
+  id, resource_id (FK → resources),
+  type (video/pdf/article/file),
+  url (nullable), file_url (nullable),
+  title (optional label),
+  order (integer, display order),
+  transcript (text, nullable), transcript_status,
+  created_at
+
 snippets
   id, resource_id (nullable FK → resources),
   title, description, language, code (text),
   tags (text[]), created_at, updated_at
 ```
+
+A resource is a **learning unit** — its `resource_elements` hold the actual media (video + PDF + article all linked together). The reader renders them in `order` sequence.
 
 ---
 

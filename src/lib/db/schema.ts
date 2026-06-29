@@ -42,9 +42,24 @@ export const snippets = pgTable("snippets", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 })
 
+export const resourceElements = pgTable('resource_elements', {
+  id: serial('id').primaryKey(),
+  resourceId: integer('resource_id').notNull().references(() => resources.id),
+  type: text('type').notNull(), // 'video' | 'pdf' | 'article' | 'file'
+  url: text('url'),
+  fileUrl: text('file_url'),
+  title: text('title'),
+  order: integer('order').notNull().default(0),
+  transcript: text('transcript'),
+  transcriptStatus: text('transcript_status'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+})
+
 export type Topic = typeof topics.$inferSelect
 export type NewTopic = typeof topics.$inferInsert
 export type Resource = typeof resources.$inferSelect
 export type NewResource = typeof resources.$inferInsert
+export type ResourceElement = typeof resourceElements.$inferSelect
+export type NewResourceElement = typeof resourceElements.$inferInsert
 export type Snippet = typeof snippets.$inferSelect
 export type NewSnippet = typeof snippets.$inferInsert
