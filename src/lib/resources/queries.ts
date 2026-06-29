@@ -82,7 +82,7 @@ export async function createResource(data: NewResource) {
 export async function updateResource(id: number, data: Partial<NewResource>) {
   const rows = await db
     .update(resources)
-    .set({ ...data, updatedAt: new Date().toISOString() })
+    .set({ ...data, updatedAt: new Date() })
     .where(eq(resources.id, id))
     .returning()
   return rows[0]
@@ -91,7 +91,7 @@ export async function updateResource(id: number, data: Partial<NewResource>) {
 export async function softDeleteResource(id: number) {
   await db
     .update(resources)
-    .set({ deletedAt: new Date().toISOString() })
+    .set({ deletedAt: new Date() })
     .where(eq(resources.id, id))
 }
 
