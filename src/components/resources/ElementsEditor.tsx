@@ -36,6 +36,7 @@ function SavedRow({
   const [url, setUrl] = useState(element.url ?? '')
   const [title, setTitle] = useState(element.title ?? '')
   const [saving, setSaving] = useState(false)
+  const [confirmDelete, setConfirmDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
   const TypeIcon = TYPE_OPTIONS.find(o => o.value === type)?.Icon ?? Paperclip
@@ -62,7 +63,7 @@ function SavedRow({
   }
 
   async function remove() {
-    if (!confirm('Remove this element?')) return
+    setConfirmDelete(false)
     setDeleting(true)
     try {
       await fetch(`/api/resources/${resourceId}/elements/${element.id}`, { method: 'DELETE' })
@@ -95,12 +96,25 @@ function SavedRow({
           </div>
         </div>
         <span className="hf-badge" style={{ fontSize: '0.72rem' }}>{element.type}</span>
-        <button onClick={() => setEditing(true)} className="btn btn-ghost btn-sm" style={{ padding: '4px 8px' }} title="Edit">
-          <Pencil size={13} />
-        </button>
-        <button onClick={remove} disabled={deleting} className="btn btn-danger btn-sm" style={{ padding: '4px 8px' }} title="Delete">
-          <Trash2 size={13} />
-        </button>
+        {confirmDelete ? (
+          <>
+            <button onClick={() => setConfirmDelete(false)} className="btn btn-ghost btn-sm" style={{ padding: '4px 8px' }}>
+              <X size={13} />
+            </button>
+            <button onClick={remove} disabled={deleting} className="btn btn-danger btn-sm" style={{ padding: '4px 8px', fontSize: '0.75rem' }}>
+              <Check size={13} /> Remove
+            </button>
+          </>
+        ) : (
+          <>
+            <button onClick={() => setEditing(true)} className="btn btn-ghost btn-sm" style={{ padding: '4px 8px' }} title="Edit">
+              <Pencil size={13} />
+            </button>
+            <button onClick={() => setConfirmDelete(true)} disabled={deleting} className="btn btn-danger btn-sm" style={{ padding: '4px 8px' }} title="Delete">
+              <Trash2 size={13} />
+            </button>
+          </>
+        )}
       </div>
     )
   }
