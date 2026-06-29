@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { TopBar } from '@/components/layout/TopBar'
 import { CodeView } from '@/components/snippets/CodeView'
+import { ExplainSnippet } from '@/components/ai/ExplainSnippet'
 import { getSnippetById } from '@/lib/snippets/queries'
 import { DeleteSnippetButton } from '@/components/snippets/DeleteSnippetButton'
 
@@ -37,9 +38,11 @@ export default async function SnippetDetailPage({ params }: { params: Promise<{ 
 
       <div className="max-w-3xl">
         <CodeView code={snippet.code} language={snippet.language} />
+
+        <ExplainSnippet code={snippet.code} language={snippet.language} />
       </div>
 
-      <p className="text-xs text-muted-foreground mt-4">
+      <p className="text-xs text-muted-foreground mt-6">
         Created {new Date(snippet.createdAt).toLocaleDateString()}
       </p>
     </div>
