@@ -3,11 +3,6 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Textarea } from '@/components/ui/textarea'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { CodeEditor } from './CodeEditor'
 import { LANGUAGES, type Language } from '@/lib/snippets/queries'
 import type { Snippet } from '@/lib/db/schema'
@@ -52,57 +47,58 @@ export function SnippetForm({ snippet }: SnippetFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-5">
-      <div className="grid sm:grid-cols-2 gap-4">
-        <div className="space-y-1.5">
-          <Label htmlFor="title">Title *</Label>
-          <Input
+    <form onSubmit={handleSubmit} style={{ maxWidth: '720px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 180px', gap: '14px' }}>
+        <div className="field" style={{ margin: 0 }}>
+          <label className="input-label" htmlFor="title">Title *</label>
+          <input
             id="title"
+            className="hf-input"
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={e => setTitle(e.target.value)}
             placeholder="e.g. Fetch with retry"
             required
           />
         </div>
-
-        <div className="space-y-1.5">
-          <Label>Language</Label>
-          <Select value={language} onValueChange={(v) => setLanguage(v as Language)}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {LANGUAGES.map((l) => (
-                <SelectItem key={l} value={l}>{l}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="field" style={{ margin: 0 }}>
+          <label className="input-label" htmlFor="language">Language</label>
+          <select
+            id="language"
+            className="hf-input"
+            value={language}
+            onChange={e => setLanguage(e.target.value as Language)}
+            style={{ cursor: 'pointer' }}
+          >
+            {LANGUAGES.map(l => <option key={l} value={l}>{l}</option>)}
+          </select>
         </div>
       </div>
 
-      <div className="space-y-1.5">
-        <Label htmlFor="description">Description</Label>
-        <Textarea
+      <div className="field" style={{ margin: 0 }}>
+        <label className="input-label" htmlFor="description">Description</label>
+        <textarea
           id="description"
+          className="hf-input"
           value={description}
-          onChange={(e) => setDescription(e.target.value)}
+          onChange={e => setDescription(e.target.value)}
           placeholder="What does this snippet do?"
           rows={2}
+          style={{ resize: 'vertical' }}
         />
       </div>
 
-      <div className="space-y-1.5">
-        <Label>Code *</Label>
+      <div className="field" style={{ margin: 0 }}>
+        <label className="input-label">Code *</label>
         <CodeEditor value={code} onChange={setCode} language={language} />
       </div>
 
-      <div className="flex gap-3">
-        <Button type="submit" disabled={loading || !title.trim() || !code.trim()}>
+      <div style={{ display: 'flex', gap: '10px' }}>
+        <button type="submit" disabled={loading || !title.trim() || !code.trim()} className="btn btn-primary">
           {loading ? 'Saving…' : snippet ? 'Save Changes' : 'Create Snippet'}
-        </Button>
-        <Button type="button" variant="outline" onClick={() => router.back()}>
+        </button>
+        <button type="button" className="btn btn-ghost" onClick={() => router.back()}>
           Cancel
-        </Button>
+        </button>
       </div>
     </form>
   )

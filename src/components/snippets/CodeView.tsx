@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { Check, Copy } from 'lucide-react'
 import { codeToHtml } from 'shiki'
-import { Button } from '@/components/ui/button'
 
 interface CodeViewProps {
   code: string
@@ -15,10 +14,9 @@ export function CodeView({ code, language }: CodeViewProps) {
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
-    codeToHtml(code, {
-      lang: language,
-      theme: 'one-dark-pro',
-    }).then(setHtml).catch(() => setHtml(`<pre><code>${code}</code></pre>`))
+    codeToHtml(code, { lang: language, theme: 'one-dark-pro' })
+      .then(setHtml)
+      .catch(() => setHtml(`<pre><code>${code}</code></pre>`))
   }, [code, language])
 
   async function handleCopy() {
@@ -28,22 +26,34 @@ export function CodeView({ code, language }: CodeViewProps) {
   }
 
   return (
-    <div className="relative group">
-      <Button
-        size="sm"
-        variant="ghost"
+    <div style={{ position: 'relative' }} className="group">
+      <button
         onClick={handleCopy}
-        className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity h-7 w-7 p-0"
+        style={{
+          position: 'absolute', right: '8px', top: '8px',
+          width: '28px', height: '28px', padding: 0,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          borderRadius: '6px', border: 'none',
+          background: 'rgba(255,255,255,0.12)',
+          color: 'rgba(255,255,255,0.7)',
+          cursor: 'pointer',
+          opacity: 0, transition: 'opacity 0.15s',
+          zIndex: 1,
+        }}
+        className="copy-btn"
+        aria-label="Copy code"
       >
-        {copied ? <Check size={14} /> : <Copy size={14} />}
-      </Button>
+        {copied ? <Check size={13} /> : <Copy size={13} />}
+      </button>
+      <style>{`.group:hover .copy-btn { opacity: 1 !important }`}</style>
       {html ? (
         <div
-          className="text-sm rounded overflow-auto [&_pre]:p-4 [&_pre]:rounded [&_pre]:m-0"
+          style={{ fontSize: '0.875rem', borderRadius: '10px', overflow: 'auto' }}
+          className="[&_pre]:p-4 [&_pre]:rounded-none [&_pre]:m-0"
           dangerouslySetInnerHTML={{ __html: html }}
         />
       ) : (
-        <pre className="bg-muted rounded p-4 text-sm overflow-auto">
+        <pre style={{ background: 'var(--cream)', borderRadius: '10px', padding: '16px', fontSize: '0.875rem', overflow: 'auto', border: '1px solid var(--line)' }}>
           <code>{code}</code>
         </pre>
       )}

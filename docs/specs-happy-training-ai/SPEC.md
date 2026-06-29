@@ -192,8 +192,8 @@ A resource is a **learning unit** — its `resource_elements` hold the actual me
 |---|---|---|
 | **Framework** | Next.js 15 (App Router) | Server Components, streaming, Route Handlers |
 | **Language** | TypeScript | Strict mode |
-| **Database** | SQLite via Turso | Simple local DB, no server needed |
-| **ORM** | Drizzle ORM | `drizzle-orm` + `drizzle-kit` migrations |
+| **Database** | Neon PostgreSQL | `@neondatabase/serverless` + `drizzle-orm/neon-http` |
+| **ORM** | Drizzle ORM | `drizzle-orm/pg-core`, `drizzle-kit push` (explicit `DATABASE_URL=…` prefix) |
 | **File Storage** | Local filesystem | PDFs stored in `public/uploads/` or configurable path |
 | **AI — Fast** | Groq via `@ai-sdk/groq` | Transcription, Q&A, snippet explain |
 | **AI — Semantic** | Cohere via `@ai-sdk/cohere` | Embeddings, rerank, synthesis |
@@ -202,8 +202,8 @@ A resource is a **learning unit** — its `resource_elements` hold the actual me
 | **Code editor** | CodeMirror 6 | Snippet creator |
 | **Syntax highlight** | Shiki | Reader + snippet view |
 | **YouTube** | `youtube-transcript` | Caption extraction |
-| **Styling** | Tailwind CSS v4 | Per Happy Factory standard |
-| **Components** | shadcn/ui | Per Happy Factory standard |
+| **Styling** | Tailwind CSS v4 + HF brand CSS tokens | `@variant dark (&:where(.dark, .dark *))` for class-based dark mode |
+| **Components** | Happy Factory brand system | `.btn`, `.hf-card`, `.hf-input`, `.hf-badge` — no shadcn/ui except Toaster |
 | **Deployment** | Local / Vercel | Runs locally; optional Vercel deploy |
 
 ---

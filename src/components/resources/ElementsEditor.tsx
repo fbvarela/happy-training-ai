@@ -1,21 +1,16 @@
 'use client'
 
 import { useState } from 'react'
-import { Plus, Trash2, Video, FileText, Newspaper, Paperclip, GripVertical } from 'lucide-react'
+import { Plus, Trash2, Pencil, Check, X, Video, FileText, Newspaper, Paperclip } from 'lucide-react'
+import { toast } from 'sonner'
 import type { ResourceElement } from '@/lib/db/schema'
 
 const TYPE_OPTIONS = [
-  { value: 'video',   label: 'Video',   icon: Video },
-  { value: 'pdf',     label: 'PDF',     icon: FileText },
-  { value: 'article', label: 'Article', icon: Newspaper },
-  { value: 'file',    label: 'File',    icon: Paperclip },
+  { value: 'video',   label: 'Video',   Icon: Video },
+  { value: 'pdf',     label: 'PDF',     Icon: FileText },
+  { value: 'article', label: 'Article', Icon: Newspaper },
+  { value: 'file',    label: 'File',    Icon: Paperclip },
 ]
-
-function typeIcon(type: string) {
-  const opt = TYPE_OPTIONS.find(o => o.value === type)
-  const Icon = opt?.icon ?? Paperclip
-  return <Icon size={15} style={{ flexShrink: 0, opacity: 0.6 }} />
-}
 
 function detectType(url: string): string {
   if (/youtube\.com|youtu\.be/.test(url)) return 'video'
@@ -24,164 +19,269 @@ function detectType(url: string): string {
   return 'file'
 }
 
-interface DraftElement {
-  localId: string
-  type: string
-  url: string
-  title: string
-  saved: boolean
-  id?: number
+/* ─── Saved element row (read + edit mode) ─── */
+function SavedRow({
+  element,
+  resourceId,
+  onUpdate,
+  onDelete,
+}: {
+  element: ResourceElement
+  resourceId: number
+  onUpdate: (updated: ResourceElement) => void
+  onDelete: (id: number) => void
+}) {
+  const [editing, setEditing] = useState(false)
+  const [type, setType] = useState(element.type)
+  const [url, setUrl] = useState(element.url ?? '')
+  const [title, setTitle] = useState(element.title ?? '')
+  const [saving, setSaving] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+
+  const TypeIcon = TYPE_OPTIONS.find(o => o.value === type)?.Icon ?? Paperclip
+
+  async function save() {
+    if (!url.trim()) { toast.error('URL is required'); return }
+    setSaving(true)
+    try {
+      const res = await fetch(`/api/resources/${resourceId}/elements/${element.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: url.trim(), title: title.trim() || null, type }),
+      })
+      if (!res.ok) throw new Error()
+      const updated = await res.json()
+      onUpdate(updated)
+      setEditing(false)
+      toast.success('Element saved')
+    } catch {
+      toast.error('Failed to save')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function remove() {
+    if (!confirm('Remove this element?')) return
+    setDeleting(true)
+    try {
+      await fetch(`/api/resources/${resourceId}/elements/${element.id}`, { method: 'DELETE' })
+      onDelete(element.id)
+      toast.success('Element removed')
+    } catch {
+      toast.error('Failed to remove')
+      setDeleting(false)
+    }
+  }
+
+  if (!editing) {
+    return (
+      <div style={{
+        display: 'flex', alignItems: 'center', gap: '10px',
+        padding: '12px 14px',
+        background: 'var(--cream)',
+        border: '1.5px solid var(--line)',
+        borderRadius: '10px',
+      }}>
+        <TypeIcon size={16} style={{ color: 'var(--bark)', flexShrink: 0, opacity: 0.65 }} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          {element.title && (
+            <div style={{ fontWeight: 600, fontSize: '0.875rem', color: 'var(--bark)', marginBottom: '2px' }}>
+              {element.title}
+            </div>
+          )}
+          <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {element.url ?? element.fileUrl ?? '—'}
+          </div>
+        </div>
+        <span className="hf-badge" style={{ fontSize: '0.72rem' }}>{element.type}</span>
+        <button onClick={() => setEditing(true)} className="btn btn-ghost btn-sm" style={{ padding: '4px 8px' }} title="Edit">
+          <Pencil size={13} />
+        </button>
+        <button onClick={remove} disabled={deleting} className="btn btn-danger btn-sm" style={{ padding: '4px 8px' }} title="Delete">
+          <Trash2 size={13} />
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div style={{
+      padding: '14px',
+      background: 'var(--cream)',
+      border: '1.5px solid var(--bark)',
+      borderRadius: '10px',
+      display: 'flex', flexDirection: 'column', gap: '8px',
+    }}>
+      <div style={{ display: 'flex', gap: '8px' }}>
+        <select
+          className="hf-input"
+          value={type}
+          onChange={e => setType(e.target.value)}
+          style={{ width: '120px', flexShrink: 0, padding: '6px 8px', fontSize: '0.82rem' }}
+        >
+          {TYPE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+        </select>
+        <input
+          className="hf-input"
+          type="url"
+          placeholder="URL"
+          value={url}
+          onChange={e => { setUrl(e.target.value); if (e.target.value) setType(detectType(e.target.value)) }}
+          style={{ flex: 1, padding: '6px 10px', fontSize: '0.85rem' }}
+        />
+      </div>
+      <input
+        className="hf-input"
+        placeholder="Label (optional, e.g. 'Lecture slides')"
+        value={title}
+        onChange={e => setTitle(e.target.value)}
+        style={{ padding: '6px 10px', fontSize: '0.82rem' }}
+      />
+      <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
+        <button onClick={() => { setEditing(false); setUrl(element.url ?? ''); setTitle(element.title ?? ''); setType(element.type) }} className="btn btn-ghost btn-sm">
+          <X size={13} /> Cancel
+        </button>
+        <button onClick={save} disabled={saving || !url.trim()} className="btn btn-primary btn-sm">
+          <Check size={13} /> {saving ? 'Saving…' : 'Save'}
+        </button>
+      </div>
+    </div>
+  )
 }
 
+/* ─── New (unsaved) element row ─── */
+function NewRow({
+  resourceId,
+  order,
+  onSaved,
+  onCancel,
+}: {
+  resourceId: number
+  order: number
+  onSaved: (el: ResourceElement) => void
+  onCancel: () => void
+}) {
+  const [type, setType] = useState('video')
+  const [url, setUrl] = useState('')
+  const [title, setTitle] = useState('')
+  const [saving, setSaving] = useState(false)
+
+  async function save() {
+    if (!url.trim()) { toast.error('URL is required'); return }
+    setSaving(true)
+    try {
+      const res = await fetch(`/api/resources/${resourceId}/elements`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: url.trim(), title: title.trim() || null, type, order }),
+      })
+      if (!res.ok) throw new Error()
+      const el = await res.json()
+      onSaved(el)
+      toast.success('Element added')
+    } catch {
+      toast.error('Failed to add element')
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div style={{
+      padding: '14px',
+      background: 'var(--cream)',
+      border: '1.5px dashed var(--sun)',
+      borderRadius: '10px',
+      display: 'flex', flexDirection: 'column', gap: '8px',
+    }}>
+      <div style={{ display: 'flex', gap: '8px' }}>
+        <select
+          className="hf-input"
+          value={type}
+          onChange={e => setType(e.target.value)}
+          style={{ width: '120px', flexShrink: 0, padding: '6px 8px', fontSize: '0.82rem' }}
+        >
+          {TYPE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+        </select>
+        <input
+          className="hf-input"
+          type="url"
+          placeholder="Paste a URL…"
+          value={url}
+          autoFocus
+          onChange={e => { setUrl(e.target.value); if (e.target.value) setType(detectType(e.target.value)) }}
+          style={{ flex: 1, padding: '6px 10px', fontSize: '0.85rem' }}
+        />
+      </div>
+      <input
+        className="hf-input"
+        placeholder="Label (optional)"
+        value={title}
+        onChange={e => setTitle(e.target.value)}
+        style={{ padding: '6px 10px', fontSize: '0.82rem' }}
+      />
+      <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end' }}>
+        <button onClick={onCancel} className="btn btn-ghost btn-sm">
+          <X size={13} /> Cancel
+        </button>
+        <button onClick={save} disabled={saving || !url.trim()} className="btn btn-primary btn-sm">
+          <Check size={13} /> {saving ? 'Adding…' : 'Add'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+/* ─── Main editor ─── */
 interface Props {
   resourceId: number
   initialElements: ResourceElement[]
 }
 
 export function ElementsEditor({ resourceId, initialElements }: Props) {
-  const [elements, setElements] = useState<DraftElement[]>(
-    initialElements.map(e => ({
-      localId: String(e.id),
-      id: e.id,
-      type: e.type,
-      url: e.url ?? '',
-      title: e.title ?? '',
-      saved: true,
-    }))
-  )
-  const [saving, setSaving] = useState<Record<string, boolean>>({})
+  const [elements, setElements] = useState<ResourceElement[]>(initialElements)
+  const [addingNew, setAddingNew] = useState(false)
 
-  function addBlank() {
-    setElements(prev => [...prev, {
-      localId: `new-${Date.now()}`,
-      type: 'video',
-      url: '',
-      title: '',
-      saved: false,
-    }])
+  function handleUpdate(updated: ResourceElement) {
+    setElements(prev => prev.map(e => e.id === updated.id ? updated : e))
   }
 
-  function update(localId: string, patch: Partial<DraftElement>) {
-    setElements(prev => prev.map(e => e.localId === localId ? { ...e, ...patch } : e))
+  function handleDelete(id: number) {
+    setElements(prev => prev.filter(e => e.id !== id))
   }
 
-  function handleUrlChange(localId: string, url: string) {
-    const autoType = url ? detectType(url) : undefined
-    update(localId, { url, ...(autoType ? { type: autoType } : {}) })
-  }
-
-  async function save(el: DraftElement) {
-    if (!el.url.trim()) return
-    setSaving(s => ({ ...s, [el.localId]: true }))
-    try {
-      if (el.id) {
-        await fetch(`/api/resources/${resourceId}/elements/${el.id}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url: el.url, title: el.title, type: el.type }),
-        })
-        update(el.localId, { saved: true })
-      } else {
-        const res = await fetch(`/api/resources/${resourceId}/elements`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            url: el.url,
-            title: el.title,
-            type: el.type,
-            order: elements.indexOf(el),
-          }),
-        })
-        const data = await res.json()
-        update(el.localId, { saved: true, id: data.id })
-      }
-    } finally {
-      setSaving(s => ({ ...s, [el.localId]: false }))
-    }
-  }
-
-  async function remove(el: DraftElement) {
-    if (el.id) {
-      await fetch(`/api/resources/${resourceId}/elements/${el.id}`, { method: 'DELETE' })
-    }
-    setElements(prev => prev.filter(e => e.localId !== el.localId))
+  function handleSaved(el: ResourceElement) {
+    setElements(prev => [...prev, el])
+    setAddingNew(false)
   }
 
   return (
-    <div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-        {elements.map((el) => (
-          <div key={el.localId} style={{
-            display: 'grid',
-            gridTemplateColumns: '20px 120px 1fr auto auto',
-            gap: '8px',
-            alignItems: 'center',
-            background: 'var(--cream)',
-            border: `1.5px solid ${el.saved ? 'var(--line)' : 'var(--sun)'}`,
-            borderRadius: '10px',
-            padding: '10px 12px',
-          }}>
-            <GripVertical size={14} style={{ color: 'var(--text-muted)', cursor: 'grab' }} />
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+      {elements.map(el => (
+        <SavedRow
+          key={el.id}
+          element={el}
+          resourceId={resourceId}
+          onUpdate={handleUpdate}
+          onDelete={handleDelete}
+        />
+      ))}
 
-            <select
-              className="hf-input"
-              value={el.type}
-              onChange={e => update(el.localId, { type: e.target.value, saved: false })}
-              style={{ padding: '5px 8px', fontSize: '0.82rem' }}
-            >
-              {TYPE_OPTIONS.map(o => (
-                <option key={o.value} value={o.value}>{o.label}</option>
-              ))}
-            </select>
+      {addingNew && (
+        <NewRow
+          resourceId={resourceId}
+          order={elements.length}
+          onSaved={handleSaved}
+          onCancel={() => setAddingNew(false)}
+        />
+      )}
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '5px', minWidth: 0 }}>
-              <input
-                className="hf-input"
-                type="url"
-                placeholder="URL (YouTube, PDF link, article…)"
-                value={el.url}
-                onChange={e => handleUrlChange(el.localId, e.target.value)}
-                onBlur={() => { if (!el.saved && el.url) save(el) }}
-                style={{ padding: '5px 10px', fontSize: '0.85rem' }}
-              />
-              <input
-                className="hf-input"
-                placeholder="Label (optional)"
-                value={el.title}
-                onChange={e => update(el.localId, { title: e.target.value, saved: false })}
-                onBlur={() => { if (!el.saved && el.url) save(el) }}
-                style={{ padding: '5px 10px', fontSize: '0.82rem' }}
-              />
-            </div>
-
-            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-              {typeIcon(el.type)}
-              {!el.saved && (
-                <span style={{ fontSize: '0.7rem', color: 'var(--sun)', fontWeight: 600 }}>●</span>
-              )}
-            </div>
-
-            <button
-              onClick={() => remove(el)}
-              style={{
-                background: 'none', border: 'none', cursor: 'pointer',
-                color: 'var(--text-muted)', padding: '4px',
-                borderRadius: '6px', display: 'flex', alignItems: 'center',
-              }}
-              onMouseEnter={e => (e.currentTarget.style.color = '#d94f3d')}
-              onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-muted)')}
-              aria-label="Remove element"
-            >
-              <Trash2 size={15} />
-            </button>
-          </div>
-        ))}
-      </div>
-
-      <button onClick={addBlank} className="btn btn-ghost btn-sm" style={{ marginTop: '10px' }}>
-        <Plus size={14} />
-        Add element
-      </button>
+      {!addingNew && (
+        <button onClick={() => setAddingNew(true)} className="btn btn-ghost btn-sm" style={{ alignSelf: 'flex-start', marginTop: '4px' }}>
+          <Plus size={14} />
+          Add element
+        </button>
+      )}
     </div>
   )
 }
