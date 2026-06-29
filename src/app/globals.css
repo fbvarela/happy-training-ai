@@ -616,7 +616,33 @@
 
   .empty-state p { margin: 0 0 16px; font-size: 0.95rem; }
 
+  /* ── Resource detail 2-col layout ─────────────── */
+
+  .resource-detail-layout {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 32px;
+    align-items: start;
+  }
+
+  .resource-detail-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    position: sticky;
+    top: 24px;
+  }
+
   /* ── Responsive ───────────────────────────────── */
+
+  @media (max-width: 900px) {
+    .resource-detail-layout {
+      grid-template-columns: 1fr;
+    }
+    .resource-detail-sidebar {
+      position: static;
+    }
+  }
 
   @media (max-width: 767px) {
     .sidebar-nav    { display: none; }
