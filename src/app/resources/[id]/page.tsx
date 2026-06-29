@@ -7,6 +7,7 @@ import { TranscribeButton } from '@/components/resources/TranscribeButton'
 import { ElementsEditor } from '@/components/resources/ElementsEditor'
 import { getResourceById } from '@/lib/resources/queries'
 import { getElementsByResourceId } from '@/lib/resources/elementQueries'
+import { TranscriptBlock } from '@/components/resources/TranscriptBlock'
 import { getResourceIcon } from '@/lib/resources/icons'
 import { getTopicIcon } from '@/lib/topics/icons'
 
@@ -105,6 +106,12 @@ export default async function ResourceDetailPage({ params }: { params: Promise<{
               </Link>
               <TranscribeButton resourceId={resource.id} status={resource.transcriptStatus} />
             </div>
+          </div>
+        )}
+
+        {resource.transcript && (
+          <div className="hf-card" style={{ padding: '20px' }}>
+            <TranscriptBlock transcript={resource.transcript} resourceId={resource.id} inline />
           </div>
         )}
 

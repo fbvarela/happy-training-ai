@@ -6,6 +6,7 @@ import { getElementsByResourceId } from '@/lib/resources/elementQueries'
 import { extractArticle } from '@/lib/resources/articleExtract'
 import { ReaderView } from '@/components/resources/ReaderView'
 import { TranscribeButton } from '@/components/resources/TranscribeButton'
+import { TranscriptBlock } from '@/components/resources/TranscriptBlock'
 import type { ResourceElement } from '@/lib/db/schema'
 
 export default async function ReadPage({ params }: { params: Promise<{ id: string }> }) {
@@ -111,12 +112,11 @@ async function ElementBlock({ element, index, total }: { element: ResourceElemen
           )}
         </div>
         {element.transcript && (
-          <div className="reader-transcript-section">
-            <div className="reader-transcript-label">Transcript</div>
-            {element.transcript.split('\n\n').filter(Boolean).map((para, i) => (
-              <p key={i}>{para}</p>
-            ))}
-          </div>
+          <TranscriptBlock
+            transcript={element.transcript}
+            elementId={element.id > 0 ? element.id : undefined}
+            resourceId={element.id <= 0 ? element.resourceId : undefined}
+          />
         )}
       </div>
     )
