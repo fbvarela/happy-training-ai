@@ -21,7 +21,7 @@ export async function createSnippet(data: NewSnippet): Promise<Snippet> {
 export async function updateSnippet(id: number, data: Partial<NewSnippet>): Promise<Snippet | undefined> {
   const rows = await db
     .update(snippets)
-    .set({ ...data, updatedAt: new Date().toISOString() })
+    .set({ ...data, updatedAt: new Date() })
     .where(eq(snippets.id, id))
     .returning()
   return rows[0]
