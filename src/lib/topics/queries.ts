@@ -34,7 +34,7 @@ export async function createTopic(data: NewTopic): Promise<Topic> {
 export async function updateTopic(id: number, data: Partial<NewTopic>): Promise<Topic | undefined> {
   const rows = await db
     .update(topics)
-    .set({ ...data, updatedAt: new Date().toISOString() })
+    .set({ ...data, updatedAt: new Date() })
     .where(eq(topics.id, id))
     .returning()
   return rows[0]
