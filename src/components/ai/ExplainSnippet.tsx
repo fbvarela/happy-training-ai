@@ -2,8 +2,6 @@
 
 import { useState } from 'react'
 import { Loader2, Sparkles } from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import { StreamingText } from './StreamingText'
 
 interface ExplainSnippetProps {
@@ -31,13 +29,10 @@ export function ExplainSnippet({ code, language }: ExplainSnippetProps) {
 
       const reader = res.body.getReader()
       const decoder = new TextDecoder()
-
       while (true) {
         const { done, value } = await reader.read()
         if (done) break
-        const chunk = decoder.decode(value, { stream: true })
-        // AI SDK data stream format: lines starting with "0:" contain text
-        setText((prev) => prev + chunk)
+        setText((prev) => prev + decoder.decode(value, { stream: true }))
       }
     } catch {
       setText('Failed to generate explanation.')
@@ -47,27 +42,27 @@ export function ExplainSnippet({ code, language }: ExplainSnippetProps) {
   }
 
   return (
-    <div className="mt-6">
+    <div style={{ marginTop: '20px' }}>
       {!triggered ? (
-        <Button variant="outline" size="sm" onClick={handleExplain}>
-          <Sparkles size={16} />
+        <button onClick={handleExplain} className="btn btn-ghost btn-sm">
+          <Sparkles size={14} />
           Explain with AI
-        </Button>
+        </button>
       ) : (
-        <Card>
-          <CardContent className="pt-4">
-            <div className="flex items-center gap-2 mb-3">
-              <Sparkles size={14} className="text-primary" />
-              <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">AI Explanation</span>
-              {loading && <Loader2 size={14} className="animate-spin text-muted-foreground" />}
-            </div>
-            {text ? (
-              <StreamingText text={text} />
-            ) : (
-              <p className="text-sm text-muted-foreground">Generating explanation…</p>
-            )}
-          </CardContent>
-        </Card>
+        <div style={{ background: 'var(--cream)', borderRadius: '10px', padding: '14px 16px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+            <Sparkles size={13} style={{ color: 'var(--leaf)' }} />
+            <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              AI Explanation
+            </span>
+            {loading && <Loader2 size={13} style={{ color: 'var(--text-muted)', animation: 'spin 1s linear infinite' }} />}
+          </div>
+          {text ? (
+            <StreamingText text={text} />
+          ) : (
+            <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', margin: 0 }}>Generating explanation…</p>
+          )}
+        </div>
       )}
     </div>
   )

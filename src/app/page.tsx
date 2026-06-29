@@ -1,6 +1,8 @@
 import Link from 'next/link'
 import { BookOpen, Brain, Code, LayoutList, Plus } from 'lucide-react'
 import { TopBar } from '@/components/layout/TopBar'
+import { getTopicIcon } from '@/lib/topics/icons'
+
 import { db } from '@/lib/db'
 import { resources, snippets, topics } from '@/lib/db/schema'
 import { isNull, desc } from 'drizzle-orm'
@@ -90,12 +92,15 @@ export default async function HomePage() {
             </p>
           ) : (
             <div>
-              {topicList.map((t) => (
-                <Link key={t.id} href={`/topics/${t.id}`} className="list-item">
-                  <span>{t.icon}</span>
-                  <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</span>
-                </Link>
-              ))}
+              {topicList.map((t) => {
+                const TIcon = getTopicIcon(t.icon)
+                return (
+                  <Link key={t.id} href={`/topics/${t.id}`} className="list-item">
+                    <TIcon size={15} style={{ color: t.color ?? 'var(--leaf)', flexShrink: 0 }} />
+                    <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</span>
+                  </Link>
+                )
+              })}
             </div>
           )}
         </div>
