@@ -519,6 +519,8 @@
 
   .reader-body p {
     margin: 0 0 1.4em;
+    text-align: justify;
+    hyphens: auto;
   }
 
   .reader-body h1,

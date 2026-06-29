@@ -90,6 +90,8 @@ export function ReaderView({ children, title, description }: ReaderViewProps) {
           lineHeight: size.line,
           marginBottom: '28px',
           fontStyle: 'italic',
+          textAlign: 'justify',
+          hyphens: 'auto',
         }}>
           {description}
         </p>
