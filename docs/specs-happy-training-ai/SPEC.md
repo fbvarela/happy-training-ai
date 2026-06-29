@@ -43,12 +43,16 @@ Resources are the core content unit. Types: `video`, `pdf`, `article`, `snippet`
 **Resource elements API:**
 - `GET/POST  /api/resources/[id]/elements` — list or add elements to a resource
 - `PATCH/DELETE /api/resources/[id]/elements/[elementId]` — update or remove an element
-- `POST /api/elements/[elementId]/transcribe` — transcribe a video element (parallel to resource-level transcribe)
+- `POST /api/elements/[elementId]/transcribe` — transcribe a video element
+- `PATCH /api/elements/[elementId]` — update element fields (transcript, title, url, type, order)
+- `POST /api/resources/[id]/rewrite` — rewrite resource transcript for readability (returns new text)
+- `POST /api/elements/[elementId]/rewrite` — rewrite element transcript for readability (returns new text)
 - `TranscribeButton` accepts optional `isElement` prop to route to the element endpoint
+- `TranscriptBlock` client component: inline view/edit/rewrite for any transcript (resource or element)
 
-### 2.3 YouTube Transcription Pipeline
+### 2.3 YouTube Transcription Pipeline + Rewrite
 
-Mirrors the Happy News AI transcription system.
+Mirrors the Happy News AI transcription system, with an added readability rewrite step.
 
 - **Input:** YouTube URL (video or playlist)
 - **Process:**
@@ -56,10 +60,12 @@ Mirrors the Happy News AI transcription system.
   2. Extract transcript via `youtube-transcript` package
   3. Store raw transcript with timestamps in DB
   4. AI post-process: clean, paragraph-break, and summarize via Groq (`llama-3.3-70b-versatile`)
-- **Output:** Readable, formatted transcript with chapter markers + AI summary
-- **UI:** Transcript viewer with timestamp links that jump to the YouTube embed
+- **Rewrite for reading:** Separate one-click action (`POST .../rewrite`) that runs a second Groq pass to further clean disfluencies, add ALL-CAPS section headings, and break into readable paragraphs. Uses chunked processing (8 k chars/chunk) with a summarization guard (rejects output shorter than 60 % of input). Ported from Happy News AI `rewriteForReading.ts` but using Groq instead of Cohere.
+- **Edit transcript:** `TranscriptBlock` client component in the reader and resource detail page — click Edit → textarea, Save saves via PATCH, Cancel discards.
+- **Output:** Readable, formatted transcript rendered in the reader + resource detail
+- **UI:** `TranscriptBlock` shows Rewrite and Edit buttons above the transcript text
 
-**Key routes:** `app/api/resources/transcribe/route.ts`
+**Key routes:** `app/api/resources/[id]/transcribe/route.ts`, `app/api/resources/[id]/rewrite/route.ts`, `app/api/elements/[elementId]/rewrite/route.ts`
 
 ### 2.4 PDF Viewer
 
