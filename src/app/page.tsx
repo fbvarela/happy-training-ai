@@ -66,9 +66,9 @@ export default async function HomePage() {
           ) : (
             <div>
               {recentResources.map((r) => (
-                <Link key={r.id} href={`/resources/${r.id}`} className="list-item">
-                  <span className="list-type-badge">{r.type}</span>
-                  <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{r.title}</span>
+                <Link key={r.id} href={`/resources/${r.id}`} className="hf-list-item">
+                  <span className="hf-list-badge">{r.type}</span>
+                  <span className="hf-list-title">{r.title}</span>
                 </Link>
               ))}
             </div>
@@ -95,9 +95,9 @@ export default async function HomePage() {
               {topicList.map((t) => {
                 const TIcon = getTopicIcon(t.icon)
                 return (
-                  <Link key={t.id} href={`/topics/${t.id}`} className="list-item">
+                  <Link key={t.id} href={`/topics/${t.id}`} className="hf-list-item">
                     <TIcon size={15} style={{ color: t.color ?? 'var(--leaf)', flexShrink: 0 }} />
-                    <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{t.name}</span>
+                    <span className="hf-list-title">{t.name}</span>
                   </Link>
                 )
               })}

@@ -109,6 +109,11 @@
 }
 
 @layer base {
+  html {
+    /* Scale every rem-based size up ~12.5% for readability (16px → 18px base) */
+    font-size: 112.5%;
+  }
+
   body {
     background: var(--bg);
     color: var(--text);
@@ -401,29 +406,53 @@
 
   /* ── List items ───────────────────────────────── */
 
-  .list-item {
+  .hf-list-item {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 8px 0;
-    border-bottom: 1px solid var(--line);
+    gap: 12px;
+    padding: 10px 8px;
+    margin: 0 -8px;
+    border-radius: 8px;
     text-decoration: none;
     color: var(--text);
     font-size: 0.9rem;
-    transition: color 0.14s;
+    font-weight: 500;
+    transition: background 0.14s, color 0.14s;
   }
 
-  .list-item:last-child { border-bottom: none; }
-  .list-item:hover { color: var(--bark); }
+  .hf-list-item + .hf-list-item { border-top: 1px solid var(--line); }
+  .hf-list-item:hover {
+    background: var(--cream);
+    color: var(--bark);
+    border-color: transparent;
+  }
+  .hf-list-item:hover + .hf-list-item { border-color: transparent; }
 
-  .list-type-badge {
-    font-size: 0.65rem;
+  .hf-list-title {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .hf-list-badge {
+    font-size: 0.6rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.06em;
     color: var(--text-muted);
-    width: 48px;
+    background: var(--cream);
+    border: 1px solid var(--line);
+    border-radius: 5px;
+    padding: 3px 7px;
     flex-shrink: 0;
+  }
+
+  .hf-list-item:hover .hf-list-badge {
+    background: var(--surface);
+    border-color: var(--bark-light);
+    color: var(--bark);
   }
 
   /* ── Buttons ──────────────────────────────────── */
@@ -616,7 +645,33 @@
 
   .empty-state p { margin: 0 0 16px; font-size: 0.95rem; }
 
+  /* ── Resource detail 2-col layout ─────────────── */
+
+  .resource-detail-layout {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 32px;
+    align-items: start;
+  }
+
+  .resource-detail-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    position: sticky;
+    top: 24px;
+  }
+
   /* ── Responsive ───────────────────────────────── */
+
+  @media (max-width: 900px) {
+    .resource-detail-layout {
+      grid-template-columns: 1fr;
+    }
+    .resource-detail-sidebar {
+      position: static;
+    }
+  }
 
   @media (max-width: 767px) {
     .sidebar-nav    { display: none; }

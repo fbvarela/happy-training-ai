@@ -28,7 +28,7 @@ export function DeleteTopicButton({ id }: { id: number }) {
   if (confirming) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Resources won't be deleted.</span>
+        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Resources won&apos;t be deleted.</span>
         <button onClick={() => setConfirming(false)} className="btn btn-ghost btn-sm">
           <X size={13} /> No
         </button>

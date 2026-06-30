@@ -12,27 +12,20 @@ function typeFromExt(ext: string): string {
 export async function POST(req: NextRequest) {
   const formData = await req.formData()
   const file = formData.get('file') as File | null
-  const title = formData.get('title') as string | null
-  const topicId = formData.get('topicId') as string | null
-
-  if (!file) return NextResponse.json({ error: 'No file provided' }, { status: 400 })
+  if (!file) return NextResponse.json({ error: 'No file' }, { status: 400 })
 
   const bytes = await file.arrayBuffer()
   const buffer = Buffer.from(bytes)
 
-  const ext = extname(file.name).toLowerCase() || '.bin'
+  const ext = extname(file.name).toLowerCase()
+  const filename = `${randomUUID()}${ext}`
   const uploadDir = join(process.cwd(), 'public', 'uploads')
   await mkdir(uploadDir, { recursive: true })
-
-  const filename = `${randomUUID()}${ext}`
   await writeFile(join(uploadDir, filename), buffer)
 
-  const fileUrl = `/uploads/${filename}`
-
   return NextResponse.json({
-    fileUrl,
+    fileUrl: `/uploads/${filename}`,
     type: typeFromExt(ext),
-    title: title ?? file.name.replace(/\.[^.]+$/, ''),
-    topicId: topicId ? Number(topicId) : null,
+    originalName: file.name,
   })
 }
