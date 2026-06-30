@@ -3,7 +3,7 @@
 import { useRef, useState, type ReactNode } from 'react'
 import {
   Plus, Trash2, Pencil, Check, X,
-  Video, FileText, Newspaper, Paperclip,
+  Video, FileText, Newspaper, Paperclip, Image as ImageIcon,
   Upload, Link as LinkIcon, Loader2, ExternalLink, ChevronDown, ChevronUp,
 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -20,6 +20,7 @@ export type ElementWithContent = ResourceElement & {
 const TYPE_OPTIONS = [
   { value: 'video',   label: 'Video',   Icon: Video },
   { value: 'pdf',     label: 'PDF',     Icon: FileText },
+  { value: 'image',   label: 'Image',   Icon: ImageIcon },
   { value: 'article', label: 'Article', Icon: Newspaper },
   { value: 'file',    label: 'File',    Icon: Paperclip },
 ]
@@ -28,6 +29,7 @@ function TypeGlyph({ type, size, style }: { type: string; size: number; style?: 
   switch (type) {
     case 'video':   return <Video size={size} style={style} />
     case 'pdf':     return <FileText size={size} style={style} />
+    case 'image':   return <ImageIcon size={size} style={style} />
     case 'article': return <Newspaper size={size} style={style} />
     default:        return <Paperclip size={size} style={style} />
   }
@@ -35,13 +37,15 @@ function TypeGlyph({ type, size, style }: { type: string; size: number; style?: 
 
 function detectType(url: string) {
   if (/youtube\.com|youtu\.be/.test(url)) return 'video'
-  if (/\.pdf$/i.test(url)) return 'pdf'
+  if (/\.pdf(\?|$)/i.test(url)) return 'pdf'
+  if (/\.(png|jpe?g|gif|webp|svg)(\?|$)/i.test(url)) return 'image'
   if (url.startsWith('http')) return 'article'
   return 'file'
 }
 
 function typeFromExt(ext: string) {
   if (ext === '.pdf') return 'pdf'
+  if (['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg'].includes(ext)) return 'image'
   if (['.mp4', '.mov', '.webm', '.mkv', '.avi'].includes(ext)) return 'video'
   return 'file'
 }
@@ -131,9 +135,67 @@ function FileContent({ element }: { element: ElementWithContent }) {
   )
 }
 
+function ImageContent({ element }: { element: ElementWithContent }) {
+  const src = element.fileUrl ?? element.url
+  const [open, setOpen] = useState(false)
+  if (!src) return null
+
+  return (
+    <>
+      <button
+        onClick={() => setOpen(true)}
+        title="Click to view full size"
+        style={{ display: 'block', width: '100%', padding: 0, border: 'none', background: 'none', cursor: 'zoom-in' }}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={src}
+          alt={element.title ?? 'Image'}
+          style={{ width: '100%', maxHeight: '640px', objectFit: 'contain', borderRadius: '10px', border: '1px solid var(--line)', background: 'var(--cream)', display: 'block' }}
+        />
+      </button>
+
+      {open && (
+        <div
+          onClick={() => setOpen(false)}
+          role="dialog"
+          aria-modal="true"
+          style={{
+            position: 'fixed', inset: 0, zIndex: 1000,
+            background: 'rgba(20, 14, 9, 0.88)',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            padding: '32px', cursor: 'zoom-out',
+          }}
+        >
+          <button
+            onClick={() => setOpen(false)}
+            aria-label="Close"
+            style={{
+              position: 'absolute', top: '18px', right: '20px',
+              background: 'rgba(255,255,255,0.12)', border: 'none', borderRadius: '50%',
+              width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center',
+              color: '#fff', cursor: 'pointer',
+            }}
+          >
+            <X size={20} />
+          </button>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={src}
+            alt={element.title ?? 'Image'}
+            onClick={e => e.stopPropagation()}
+            style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain', borderRadius: '6px', cursor: 'default', boxShadow: '0 8px 40px rgba(0,0,0,0.5)' }}
+          />
+        </div>
+      )}
+    </>
+  )
+}
+
 function InlineContent({ element }: { element: ElementWithContent }) {
   if (element.type === 'video') return <VideoEmbed element={element} />
   if (element.type === 'pdf') return <PdfEmbed element={element} />
+  if (element.type === 'image') return <ImageContent element={element} />
   if (element.type === 'article') return <ArticleContent element={element} />
   return <FileContent element={element} />
 }
