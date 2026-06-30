@@ -7,6 +7,7 @@ import { extractArticle } from '@/lib/resources/articleExtract'
 import { ReaderView } from '@/components/resources/ReaderView'
 import { TranscribeButton } from '@/components/resources/TranscribeButton'
 import { TranscriptBlock } from '@/components/resources/TranscriptBlock'
+import { proxyImageUrl } from '@/lib/r2'
 import type { ResourceElement } from '@/lib/db/schema'
 
 export default async function ReadPage({ params }: { params: Promise<{ id: string }> }) {
@@ -130,9 +131,30 @@ async function ElementBlock({ element, index, total }: { element: ResourceElemen
           </h2>
         )}
         <iframe
-          src={element.fileUrl ?? element.url ?? ''}
+          src={proxyImageUrl(element.fileUrl ?? element.url)}
           style={{ width: '100%', height: '780px', border: '1px solid var(--line)', borderRadius: '10px' }}
           title={element.title ?? 'PDF'}
+        />
+      </div>
+    )
+  }
+
+  if (element.type === 'image') {
+    const src = proxyImageUrl(element.fileUrl ?? element.url)
+    if (!src) return null
+    return (
+      <div style={{ marginBottom: index < total - 1 ? '40px' : 0 }}>
+        {showDivider && <hr style={{ border: 'none', borderTop: '1px solid var(--line)', margin: '0 0 32px' }} />}
+        {element.title && (
+          <h2 style={{ fontFamily: '"Fraunces", serif', fontSize: '1.15em', color: 'var(--bark)', marginBottom: '14px' }}>
+            {element.title}
+          </h2>
+        )}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={src}
+          alt={element.title ?? 'Image'}
+          style={{ width: '100%', maxHeight: '720px', objectFit: 'contain', borderRadius: '10px', border: '1px solid var(--line)' }}
         />
       </div>
     )
@@ -174,7 +196,7 @@ async function ElementBlock({ element, index, total }: { element: ResourceElemen
     <div style={{ marginBottom: index < total - 1 ? '40px' : 0 }}>
       {showDivider && <hr style={{ border: 'none', borderTop: '1px solid var(--line)', margin: '0 0 32px' }} />}
       {element.url && (
-        <a href={element.fileUrl ?? element.url} target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-sm">
+        <a href={proxyImageUrl(element.fileUrl ?? element.url)} target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-sm">
           <ExternalLink size={13} />
           {element.title ?? 'Open file'}
         </a>

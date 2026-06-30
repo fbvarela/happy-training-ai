@@ -10,6 +10,8 @@ import { toast } from 'sonner'
 import type { ResourceElement } from '@/lib/db/schema'
 import { TranscriptBlock } from './TranscriptBlock'
 import { TranscribeButton } from './TranscribeButton'
+import { proxyImageUrl } from '@/lib/r2'
+import { compressImageFile } from '@/lib/image/compress'
 
 export type ElementWithContent = ResourceElement & {
   extractedHtml?: string | null
@@ -67,7 +69,7 @@ function VideoEmbed({ element }: { element: ElementWithContent }) {
       </div>
     )
   }
-  const src = element.fileUrl ?? element.url
+  const src = proxyImageUrl(element.fileUrl ?? element.url)
   if (!src) return null
   return (
     <video controls style={{ width: '100%', borderRadius: '10px', background: '#000' }}>
@@ -77,7 +79,7 @@ function VideoEmbed({ element }: { element: ElementWithContent }) {
 }
 
 function PdfEmbed({ element }: { element: ElementWithContent }) {
-  const src = element.fileUrl ?? element.url
+  const src = proxyImageUrl(element.fileUrl ?? element.url)
   const [visible, setVisible] = useState(true)
   if (!src) return null
   return (
@@ -118,7 +120,7 @@ function ArticleContent({ element }: { element: ElementWithContent }) {
 }
 
 function FileContent({ element }: { element: ElementWithContent }) {
-  const href = element.fileUrl ?? element.url ?? '#'
+  const href = proxyImageUrl(element.fileUrl ?? element.url) || '#'
   const name = element.title ?? href.split('/').pop() ?? 'file'
   return (
     <div style={{
@@ -136,7 +138,7 @@ function FileContent({ element }: { element: ElementWithContent }) {
 }
 
 function ImageContent({ element }: { element: ElementWithContent }) {
-  const src = element.fileUrl ?? element.url
+  const src = proxyImageUrl(element.fileUrl ?? element.url)
   const [open, setOpen] = useState(false)
   if (!src) return null
 
@@ -447,21 +449,28 @@ function AddForm({
   const [uploadedFileName, setUploadedFileName] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  async function handleFile(file: File) {
+  async function handleFile(rawFile: File) {
     setUploading(true)
     try {
+      // Compress images client-side so phone photos fit under the
+      // serverless function body-size limit before they're sent.
+      const file = rawFile.type.startsWith('image/') ? await compressImageFile(rawFile) : rawFile
+
       const fd = new FormData()
       fd.append('file', file)
       const res = await fetch('/api/resources/upload', { method: 'POST', body: fd })
-      if (!res.ok) throw new Error()
+      if (!res.ok) {
+        const data = await res.json().catch(() => null)
+        throw new Error(data?.error ?? 'Upload failed')
+      }
       const data = await res.json()
       const ext = file.name.slice(file.name.lastIndexOf('.')).toLowerCase()
       setUploadedFileUrl(data.fileUrl)
       setUploadedFileName(file.name)
       setType(typeFromExt(ext))
       if (!title) setTitle(file.name.replace(/\.[^.]+$/, ''))
-    } catch {
-      toast.error('Upload failed')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Upload failed')
     } finally {
       setUploading(false)
     }

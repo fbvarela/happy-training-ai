@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { writeFile, mkdir } from 'fs/promises'
-import { join, extname } from 'path'
+import { extname } from 'path'
 import { randomUUID } from 'crypto'
+import { uploadToR2, validateUpload } from '@/lib/r2'
 
 function typeFromExt(ext: string): string {
   if (ext === '.pdf') return 'pdf'
@@ -18,20 +18,18 @@ export async function POST(req: NextRequest) {
 
   if (!file) return NextResponse.json({ error: 'No file provided' }, { status: 400 })
 
-  const bytes = await file.arrayBuffer()
-  const buffer = Buffer.from(bytes)
+  const contentType = file.type || 'application/octet-stream'
+  const validationError = validateUpload(contentType, file.size)
+  if (validationError) return NextResponse.json({ error: validationError }, { status: 400 })
 
   const ext = extname(file.name).toLowerCase() || '.bin'
-  const uploadDir = join(process.cwd(), 'public', 'uploads')
-  await mkdir(uploadDir, { recursive: true })
+  const key = `training/${randomUUID()}${ext}`
 
-  const filename = `${randomUUID()}${ext}`
-  await writeFile(join(uploadDir, filename), buffer)
-
-  const fileUrl = `/uploads/${filename}`
+  const buffer = Buffer.from(await file.arrayBuffer())
+  const { url } = await uploadToR2(key, buffer, contentType)
 
   return NextResponse.json({
-    fileUrl,
+    fileUrl: url,
     type: typeFromExt(ext),
     title: title ?? file.name.replace(/\.[^.]+$/, ''),
     topicId: topicId ? Number(topicId) : null,
