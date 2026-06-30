@@ -111,14 +111,12 @@ function ElementSection({
   element,
   resourceId,
   index,
-  total,
   onUpdate,
   onDelete,
 }: {
   element: ElementWithContent
   resourceId: number
   index: number
-  total: number
   onUpdate: (el: ElementWithContent) => void
   onDelete: (id: number) => void
 }) {
@@ -436,7 +434,6 @@ export function ElementsContent({ resourceId, initialElements }: Props) {
           element={el}
           resourceId={resourceId}
           index={i}
-          total={elements.length}
           onUpdate={updated => setElements(prev => prev.map(e => e.id === updated.id ? updated : e))}
           onDelete={id => setElements(prev => prev.filter(e => e.id !== id))}
         />
