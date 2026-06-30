@@ -137,7 +137,7 @@ resources                          ← learning unit / container
 
 resource_elements                  ← one-to-many: a resource bundles multiple media items
   id, resource_id (FK → resources),
-  type (video/pdf/article/file),
+  type (video/pdf/image/article/file),  -- image (png/jpg/jpeg/gif/webp/svg) renders inline with a click-to-zoom lightbox
   url (nullable), file_url (nullable),
   title (optional label),
   order (integer, display order),

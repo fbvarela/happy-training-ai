@@ -5,17 +5,17 @@ import { Pencil, Check, X, WandSparkles, Loader2, ChevronDown, ChevronUp } from 
 import { toast } from 'sonner'
 
 interface Props {
-  transcript: string
+  transcript: string | null
   resourceId?: number
   elementId?: number
   inline?: boolean
 }
 
 export function TranscriptBlock({ transcript: initial, resourceId, elementId, inline }: Props) {
-  const [transcript, setTranscript] = useState(initial)
-  const [collapsed, setCollapsed] = useState(true)
-  const [editing, setEditing] = useState(false)
-  const [draft, setDraft] = useState(initial)
+  const [transcript, setTranscript] = useState(initial ?? '')
+  const [collapsed, setCollapsed] = useState(!!initial)
+  const [editing, setEditing] = useState(!initial)
+  const [draft, setDraft] = useState(initial ?? '')
   const [saving, setSaving] = useState(false)
   const [rewriting, setRewriting] = useState(false)
   const [confirmRewrite, setConfirmRewrite] = useState(false)
@@ -24,6 +24,7 @@ export function TranscriptBlock({ transcript: initial, resourceId, elementId, in
   const rewriteEndpoint = elementId ? `/api/elements/${elementId}/rewrite` : `/api/resources/${resourceId}/rewrite`
 
   async function save() {
+    if (!draft.trim()) { toast.error('Transcript is empty'); return }
     setSaving(true)
     try {
       const res = await fetch(patchEndpoint, {
@@ -87,7 +88,7 @@ export function TranscriptBlock({ transcript: initial, resourceId, elementId, in
               </>
             )}
 
-            {!editing && !confirmRewrite && (
+            {!editing && !confirmRewrite && transcript && (
               <>
                 <button
                   onClick={() => setConfirmRewrite(true)}
@@ -111,12 +112,22 @@ export function TranscriptBlock({ transcript: initial, resourceId, elementId, in
               </>
             )}
 
+            {!editing && !confirmRewrite && !transcript && (
+              <button
+                onClick={() => { setDraft(''); setEditing(true) }}
+                className="btn btn-ghost btn-sm"
+                style={{ fontSize: '0.75rem' }}
+              >
+                <Pencil size={12} /> Add transcript
+              </button>
+            )}
+
             {editing && (
               <>
                 <button onClick={() => { setEditing(false); setDraft(transcript) }} className="btn btn-ghost btn-sm" style={{ fontSize: '0.75rem' }}>
                   <X size={12} /> Cancel
                 </button>
-                <button onClick={save} disabled={saving} className="btn btn-primary btn-sm" style={{ fontSize: '0.75rem' }}>
+                <button onClick={save} disabled={saving || !draft.trim()} className="btn btn-primary btn-sm" style={{ fontSize: '0.75rem' }}>
                   <Check size={12} /> {saving ? 'Saving…' : 'Save'}
                 </button>
               </>
@@ -131,16 +142,21 @@ export function TranscriptBlock({ transcript: initial, resourceId, elementId, in
             value={draft}
             onChange={e => setDraft(e.target.value)}
             className="hf-input"
+            placeholder="Paste a transcript here…"
             style={{ width: '100%', minHeight: '480px', fontFamily: 'inherit', fontSize: '0.9rem', lineHeight: 1.75, resize: 'vertical', boxSizing: 'border-box', marginTop: '12px' }}
             autoFocus
           />
-        ) : (
+        ) : transcript ? (
           transcript.split('\n\n').filter(Boolean).map((para, i) => {
             const isHeading = para === para.toUpperCase() && para.length < 80 && /^[A-Z\s,:-]+$/.test(para)
             return isHeading
               ? <h3 key={i} style={{ fontSize: '0.82rem', fontWeight: 700, letterSpacing: '0.06em', color: 'var(--text-muted)', margin: '1.6em 0 0.5em' }}>{para}</h3>
               : <p key={i} style={{ margin: '0 0 1.2em', textAlign: 'justify', hyphens: 'auto' }}>{para}</p>
           })
+        ) : (
+          <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+            No transcript yet.
+          </p>
         )
       )}
     </div>

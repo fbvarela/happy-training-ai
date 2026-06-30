@@ -19,7 +19,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const body = await req.json()
-  const { title, description, topicId, tags, url } = body
+  const { title, description, topicId, tags, url, transcript } = body
 
   const updated = await updateResource(Number(id), {
     ...(title !== undefined && { title: title.trim() }),
@@ -27,6 +27,10 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     ...(topicId !== undefined && { topicId: topicId ? Number(topicId) : null }),
     ...(tags !== undefined && { tags: JSON.stringify(tags) }),
     ...(url !== undefined && { url: url?.trim() ?? null }),
+    ...(transcript !== undefined && {
+      transcript: transcript?.trim() || null,
+      transcriptStatus: transcript?.trim() ? 'done' : null,
+    }),
   })
 
   if (!updated) return NextResponse.json({ error: 'Not found' }, { status: 404 })

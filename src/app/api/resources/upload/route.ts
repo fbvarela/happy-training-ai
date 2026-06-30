@@ -5,6 +5,7 @@ import { randomUUID } from 'crypto'
 
 function typeFromExt(ext: string): string {
   if (ext === '.pdf') return 'pdf'
+  if (['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg'].includes(ext)) return 'image'
   if (['.mp4', '.mov', '.webm', '.mkv', '.avi'].includes(ext)) return 'video'
   return 'file'
 }
