@@ -31,6 +31,33 @@ export default async function ResourceDetailPage({ params }: { params: Promise<{
     })
   )
 
+  // The resource's own content (its url/file) is the main item, shown first/centre.
+  // Bundled elements become complements on the side.
+  let selfItem: ElementWithContent | null = null
+  if (resource.url || resource.fileUrl) {
+    let extractedHtml: string | null = null
+    if (resource.type === 'article' && resource.url) {
+      const article = await extractArticle(resource.url)
+      extractedHtml = article?.content ?? null
+    }
+    selfItem = {
+      id: 0,
+      resourceId: resource.id,
+      type: resource.type,
+      url: resource.url,
+      fileUrl: resource.fileUrl,
+      title: resource.title,
+      order: -1,
+      transcript: resource.transcript,
+      transcriptStatus: resource.transcriptStatus,
+      createdAt: resource.createdAt,
+      extractedHtml,
+      isResource: true,
+    }
+  }
+
+  const items: ElementWithContent[] = selfItem ? [selfItem, ...elementsWithContent] : elementsWithContent
+
   const TypeIcon = getResourceIcon(resource.type)
   const TopicIcon = resource.topicIcon ? getTopicIcon(resource.topicIcon) : null
 
@@ -63,7 +90,7 @@ export default async function ResourceDetailPage({ params }: { params: Promise<{
 
       <ResourceWorkspace
         resourceId={resource.id}
-        initialElements={elementsWithContent}
+        initialElements={items}
         sidebarFooter={
           <>
             {resource.aiSummary && (

@@ -11,7 +11,11 @@ import type { ResourceElement } from '@/lib/db/schema'
 import { TranscriptBlock } from './TranscriptBlock'
 import { TranscribeButton } from './TranscribeButton'
 
-export type ElementWithContent = ResourceElement & { extractedHtml?: string | null }
+export type ElementWithContent = ResourceElement & {
+  extractedHtml?: string | null
+  /** True for the synthesized item representing the resource's own content (its url/file). */
+  isResource?: boolean
+}
 
 const TYPE_OPTIONS = [
   { value: 'video',   label: 'Video',   Icon: Video },
@@ -203,7 +207,9 @@ function MainPanel({
           </h2>
         )}
 
-        {confirmDelete ? (
+        {element.isResource ? (
+          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>main resource</span>
+        ) : confirmDelete ? (
           <>
             <button onClick={() => setConfirmDelete(false)} className="btn btn-ghost btn-sm" style={{ padding: '4px 8px' }}>
               <X size={13} /> No
@@ -259,11 +265,17 @@ function MainPanel({
 
       {/* Transcribe + transcript */}
       <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        {element.type === 'video' && element.id > 0 && (
-          <div><TranscribeButton resourceId={element.id} status={element.transcriptStatus} isElement /></div>
+        {element.type === 'video' && (element.isResource || element.id > 0) && (
+          <div>
+            {element.isResource
+              ? <TranscribeButton resourceId={element.resourceId} status={element.transcriptStatus} />
+              : <TranscribeButton resourceId={element.id} status={element.transcriptStatus} isElement />}
+          </div>
         )}
         {element.transcript && (
-          <TranscriptBlock transcript={element.transcript} elementId={element.id} inline />
+          element.isResource
+            ? <TranscriptBlock transcript={element.transcript} resourceId={element.resourceId} inline />
+            : <TranscriptBlock transcript={element.transcript} elementId={element.id} inline />
         )}
       </div>
     </div>
@@ -324,7 +336,9 @@ function ComplementCard({
           {sub}
         </div>
       </div>
-      {confirmDelete ? (
+      {element.isResource ? (
+        <span className="hf-badge" style={{ fontSize: '0.62rem', flexShrink: 0 }}>main</span>
+      ) : confirmDelete ? (
         <div style={{ display: 'flex', gap: '4px' }} onClick={e => e.stopPropagation()}>
           <button onClick={() => setConfirmDelete(false)} className="btn btn-ghost btn-sm" style={{ padding: '3px 7px' }}>
             <X size={12} />
