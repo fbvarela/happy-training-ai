@@ -100,7 +100,7 @@ async function ElementBlock({ element, index, total }: { element: ResourceElemen
             />
           </div>
         )}
-        <div style={{ display: 'flex', gap: '8px', marginBottom: element.transcript ? '24px' : 0 }}>
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
           {element.url && (
             <a href={element.url} target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-sm">
               <ExternalLink size={13} />
@@ -111,13 +111,11 @@ async function ElementBlock({ element, index, total }: { element: ResourceElemen
             <TranscribeButton resourceId={element.id} status={element.transcriptStatus} isElement />
           )}
         </div>
-        {element.transcript && (
-          <TranscriptBlock
-            transcript={element.transcript}
-            elementId={element.id > 0 ? element.id : undefined}
-            resourceId={element.id <= 0 ? element.resourceId : undefined}
-          />
-        )}
+        <TranscriptBlock
+          transcript={element.transcript}
+          elementId={element.id > 0 ? element.id : undefined}
+          resourceId={element.id <= 0 ? element.resourceId : undefined}
+        />
       </div>
     )
   }

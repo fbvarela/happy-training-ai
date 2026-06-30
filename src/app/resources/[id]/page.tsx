@@ -102,7 +102,10 @@ export default async function ResourceDetailPage({ params }: { params: Promise<{
               </div>
             )}
 
-            {resource.transcript && (
+            {/* The main item (above) already shows/edits the resource's own transcript
+                when it has a url/file. Only show this fallback for the rare case of a
+                transcript with no self-item to host it. */}
+            {!selfItem && resource.transcript && (
               <div className="hf-card" style={{ padding: '14px 16px' }}>
                 <TranscriptBlock transcript={resource.transcript} resourceId={resource.id} inline />
               </div>

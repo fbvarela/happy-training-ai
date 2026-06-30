@@ -326,20 +326,20 @@ function MainPanel({
       <InlineContent element={element} />
 
       {/* Transcribe + transcript */}
-      <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-        {element.type === 'video' && (element.isResource || element.id > 0) && (
-          <div>
-            {element.isResource
-              ? <TranscribeButton resourceId={element.resourceId} status={element.transcriptStatus} />
-              : <TranscribeButton resourceId={element.id} status={element.transcriptStatus} isElement />}
-          </div>
-        )}
-        {element.transcript && (
-          element.isResource
+      {element.type !== 'image' && (
+        <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+          {element.type === 'video' && (element.isResource || element.id > 0) && (
+            <div>
+              {element.isResource
+                ? <TranscribeButton resourceId={element.resourceId} status={element.transcriptStatus} />
+                : <TranscribeButton resourceId={element.id} status={element.transcriptStatus} isElement />}
+            </div>
+          )}
+          {element.isResource
             ? <TranscriptBlock transcript={element.transcript} resourceId={element.resourceId} inline />
-            : <TranscriptBlock transcript={element.transcript} elementId={element.id} inline />
-        )}
-      </div>
+            : <TranscriptBlock transcript={element.transcript} elementId={element.id} inline />}
+        </div>
+      )}
     </div>
   )
 }
