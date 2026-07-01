@@ -6,7 +6,7 @@ type Ctx = { params: Promise<{ id: string; elementId: string }> }
 export async function PATCH(req: NextRequest, { params }: Ctx) {
   const { elementId } = await params
   const body = await req.json()
-  const { url, fileUrl, title, type, order } = body
+  const { url, fileUrl, title, type, order, language, code } = body
 
   const updated = await updateElement(Number(elementId), {
     ...(url !== undefined && { url: url?.trim() ?? null }),
@@ -14,6 +14,8 @@ export async function PATCH(req: NextRequest, { params }: Ctx) {
     ...(title !== undefined && { title: title?.trim() ?? null }),
     ...(type !== undefined && { type }),
     ...(order !== undefined && { order }),
+    ...(language !== undefined && { language }),
+    ...(code !== undefined && { code: code?.trim() ?? null }),
   })
 
   if (!updated) return NextResponse.json({ error: 'Not found' }, { status: 404 })

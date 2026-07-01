@@ -50,6 +50,8 @@ export default async function ResourceDetailPage({ params }: { params: Promise<{
       order: -1,
       transcript: resource.transcript,
       transcriptStatus: resource.transcriptStatus,
+      language: null,
+      code: null,
       createdAt: resource.createdAt,
       extractedHtml,
       isResource: true,

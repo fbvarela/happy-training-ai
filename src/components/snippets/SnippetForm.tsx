@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { CodeEditor } from './CodeEditor'
-import { LANGUAGES, type Language } from '@/lib/snippets/queries'
+import { LANGUAGES, type Language } from '@/lib/snippets/languages'
 import type { Snippet } from '@/lib/db/schema'
 
 interface SnippetFormProps {

@@ -2,6 +2,8 @@ import { eq } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { snippets, type NewSnippet, type Snippet } from '@/lib/db/schema'
 
+export { LANGUAGES, type Language } from './languages'
+
 export async function getSnippets(opts?: { language?: string }): Promise<Snippet[]> {
   const rows = await db.select().from(snippets).orderBy(snippets.createdAt)
   if (opts?.language) return rows.filter((s) => s.language === opts.language)
@@ -30,10 +32,3 @@ export async function updateSnippet(id: number, data: Partial<NewSnippet>): Prom
 export async function deleteSnippet(id: number): Promise<void> {
   await db.delete(snippets).where(eq(snippets.id, id))
 }
-
-export const LANGUAGES = [
-  'typescript', 'javascript', 'python', 'sql', 'bash',
-  'go', 'rust', 'json', 'yaml', 'html', 'css', 'markdown',
-] as const
-
-export type Language = (typeof LANGUAGES)[number]
