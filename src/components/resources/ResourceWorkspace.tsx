@@ -346,17 +346,19 @@ function MainPanel({
   )
 }
 
-/* ─── Complement card (sidebar, click to focus) ─── */
+/* ─── Complement card (sidebar, click to show below the main resource) ─── */
 
 function ComplementCard({
   element,
   resourceId,
-  onFocus,
+  expanded,
+  onToggle,
   onDelete,
 }: {
   element: ElementWithContent
   resourceId: number
-  onFocus: () => void
+  expanded: boolean
+  onToggle: () => void
   onDelete: (id: number) => void
 }) {
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -378,15 +380,16 @@ function ComplementCard({
 
   return (
     <div
-      onClick={onFocus}
+      onClick={onToggle}
       role="button"
       tabIndex={0}
-      onKeyDown={e => { if (e.key === 'Enter') onFocus() }}
+      onKeyDown={e => { if (e.key === 'Enter') onToggle() }}
+      title={expanded ? 'Shown below — click to hide' : 'Click to show below the main resource'}
       style={{
         display: 'flex', alignItems: 'center', gap: '10px',
         padding: '10px 12px',
-        background: 'var(--surface)',
-        border: '1.5px solid var(--line)',
+        background: expanded ? 'var(--cream)' : 'var(--surface)',
+        border: `1.5px solid ${expanded ? 'var(--bark)' : 'var(--line)'}`,
         borderRadius: '10px',
         cursor: 'pointer',
       }}
@@ -400,9 +403,7 @@ function ComplementCard({
           {sub}
         </div>
       </div>
-      {element.isResource ? (
-        <span className="hf-badge" style={{ fontSize: '0.62rem', flexShrink: 0 }}>main</span>
-      ) : confirmDelete ? (
+      {confirmDelete ? (
         <div style={{ display: 'flex', gap: '4px' }} onClick={e => e.stopPropagation()}>
           <button onClick={() => setConfirmDelete(false)} className="btn btn-ghost btn-sm" style={{ padding: '3px 7px' }}>
             <X size={12} />
@@ -412,15 +413,18 @@ function ComplementCard({
           </button>
         </div>
       ) : (
-        <button
-          onClick={e => { e.stopPropagation(); setConfirmDelete(true) }}
-          disabled={deleting}
-          className="btn btn-danger btn-sm"
-          style={{ padding: '3px 7px', flexShrink: 0 }}
-          title="Remove"
-        >
-          <Trash2 size={12} />
-        </button>
+        <>
+          {expanded ? <ChevronUp size={15} style={{ color: 'var(--bark)', flexShrink: 0 }} /> : <ChevronDown size={15} style={{ color: 'var(--text-muted)', flexShrink: 0 }} />}
+          <button
+            onClick={e => { e.stopPropagation(); setConfirmDelete(true) }}
+            disabled={deleting}
+            className="btn btn-danger btn-sm"
+            style={{ padding: '3px 7px', flexShrink: 0 }}
+            title="Remove"
+          >
+            <Trash2 size={12} />
+          </button>
+        </>
       )}
     </div>
   )
@@ -563,42 +567,59 @@ interface Props {
 
 export function ResourceWorkspace({ resourceId, initialElements, sidebarFooter }: Props) {
   const [elements, setElements] = useState<ElementWithContent[]>(initialElements)
-  const [focusedId, setFocusedId] = useState<number | null>(initialElements[0]?.id ?? null)
+  const [expandedIds, setExpandedIds] = useState<number[]>([])
   const [adding, setAdding] = useState(false)
 
-  const focused = elements.find(e => e.id === focusedId) ?? elements[0] ?? null
-  const others = elements.filter(e => e.id !== focused?.id)
+  // The main resource always sits first; everything else is a complement
+  // shown in the sidebar. Selecting a complement adds it below the main
+  // panel instead of replacing it, so both stay visible together.
+  const main = elements[0] ?? null
+  const secondary = elements.slice(1)
+  const expanded = secondary.filter(el => expandedIds.includes(el.id))
+
+  function toggleExpanded(id: number) {
+    setExpandedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id])
+  }
 
   function handleUpdate(updated: ElementWithContent) {
     setElements(prev => prev.map(e => e.id === updated.id ? updated : e))
   }
 
   function handleDelete(id: number) {
-    setElements(prev => {
-      const next = prev.filter(e => e.id !== id)
-      if (id === focused?.id) setFocusedId(next[0]?.id ?? null)
-      return next
-    })
+    setElements(prev => prev.filter(e => e.id !== id))
+    setExpandedIds(prev => prev.filter(i => i !== id))
   }
 
   function handleSaved(el: ElementWithContent) {
     setElements(prev => [...prev, el])
-    if (elements.length === 0) setFocusedId(el.id)
     setAdding(false)
   }
 
   return (
     <div className="resource-detail-layout">
-      {/* Main: first / focused element */}
+      {/* Main: primary resource, plus any expanded complements stacked below */}
       <div>
-        {focused ? (
-          <MainPanel
-            key={focused.id}
-            element={focused}
-            resourceId={resourceId}
-            onUpdate={handleUpdate}
-            onDelete={handleDelete}
-          />
+        {main ? (
+          <>
+            <MainPanel
+              key={main.id}
+              element={main}
+              resourceId={resourceId}
+              onUpdate={handleUpdate}
+              onDelete={handleDelete}
+            />
+            {expanded.map(el => (
+              <div key={el.id} style={{ marginTop: '32px' }}>
+                <hr style={{ border: 'none', borderTop: '1px solid var(--line)', margin: '0 0 32px' }} />
+                <MainPanel
+                  element={el}
+                  resourceId={resourceId}
+                  onUpdate={handleUpdate}
+                  onDelete={handleDelete}
+                />
+              </div>
+            ))}
+          </>
         ) : (
           <div style={{ textAlign: 'center', padding: '56px 24px', border: '1.5px dashed var(--line)', borderRadius: '12px', color: 'var(--text-muted)' }}>
             No content yet. Add a file or paste a URL in the panel on the right.
@@ -608,18 +629,19 @@ export function ResourceWorkspace({ resourceId, initialElements, sidebarFooter }
 
       {/* Sidebar: complements + add + metadata */}
       <aside className="resource-detail-sidebar">
-        {others.length > 0 && (
+        {secondary.length > 0 && (
           <div>
             <div style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '10px' }}>
-              Complements · {others.length}
+              Complements · {secondary.length}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              {others.map(el => (
+              {secondary.map(el => (
                 <ComplementCard
                   key={el.id}
                   element={el}
                   resourceId={resourceId}
-                  onFocus={() => setFocusedId(el.id)}
+                  expanded={expandedIds.includes(el.id)}
+                  onToggle={() => toggleExpanded(el.id)}
                   onDelete={handleDelete}
                 />
               ))}
