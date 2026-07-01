@@ -209,11 +209,14 @@ function MainPanel({
   resourceId,
   onUpdate,
   onDelete,
+  onHide,
 }: {
   element: ElementWithContent
   resourceId: number
   onUpdate: (el: ElementWithContent) => void
   onDelete: (id: number) => void
+  /** When set, this panel is a toggled-open complement (not the main resource) — show a collapse control. */
+  onHide?: () => void
 }) {
   const [editing, setEditing] = useState(false)
   const [type, setType] = useState(element.type)
@@ -294,6 +297,11 @@ function MainPanel({
           </>
         ) : (
           <>
+            {onHide && (
+              <button onClick={onHide} className="btn btn-ghost btn-sm" style={{ padding: '4px 8px' }} title="Hide">
+                <ChevronUp size={14} /> Hide
+              </button>
+            )}
             <button onClick={() => setEditing(true)} className="btn btn-ghost btn-sm" style={{ padding: '4px 8px' }} title="Edit">
               <Pencil size={14} />
             </button>
@@ -616,6 +624,7 @@ export function ResourceWorkspace({ resourceId, initialElements, sidebarFooter }
                   resourceId={resourceId}
                   onUpdate={handleUpdate}
                   onDelete={handleDelete}
+                  onHide={() => toggleExpanded(el.id)}
                 />
               </div>
             ))}
