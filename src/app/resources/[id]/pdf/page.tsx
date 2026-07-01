@@ -3,13 +3,14 @@ import { notFound } from 'next/navigation'
 import { ArrowLeft } from 'lucide-react'
 import { PDFViewer } from '@/components/pdf/PDFViewer'
 import { getResourceById } from '@/lib/resources/queries'
+import { proxyImageUrl } from '@/lib/r2'
 
 export default async function PDFPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const resource = await getResourceById(Number(id))
   if (!resource || resource.type !== 'pdf') notFound()
 
-  const pdfUrl = resource.fileUrl ?? resource.url
+  const pdfUrl = proxyImageUrl(resource.fileUrl ?? resource.url)
   if (!pdfUrl) notFound()
 
   return (
