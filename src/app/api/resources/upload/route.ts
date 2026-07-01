@@ -14,7 +14,6 @@ export async function POST(req: NextRequest) {
   const formData = await req.formData()
   const file = formData.get('file') as File | null
   const title = formData.get('title') as string | null
-  const topicId = formData.get('topicId') as string | null
 
   if (!file) return NextResponse.json({ error: 'No file provided' }, { status: 400 })
 
@@ -32,6 +31,5 @@ export async function POST(req: NextRequest) {
     fileUrl: url,
     type: typeFromExt(ext),
     title: title ?? file.name.replace(/\.[^.]+$/, ''),
-    topicId: topicId ? Number(topicId) : null,
   })
 }

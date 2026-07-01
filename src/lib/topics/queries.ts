@@ -1,6 +1,6 @@
 import { eq, isNull } from 'drizzle-orm'
 import { db } from '@/lib/db'
-import { resources, topics, type NewTopic, type Topic } from '@/lib/db/schema'
+import { resources, resourceTopics, topics, type NewTopic, type Topic } from '@/lib/db/schema'
 
 export async function getTopics(): Promise<Topic[]> {
   return db.select().from(topics).orderBy(topics.name)
@@ -14,13 +14,14 @@ export async function getTopicById(id: number): Promise<Topic | undefined> {
 export async function getTopicWithResourceCount() {
   const topicList = await db.select().from(topics).orderBy(topics.name)
   const counts = await db
-    .select({ topicId: resources.topicId })
-    .from(resources)
+    .select({ topicId: resourceTopics.topicId })
+    .from(resourceTopics)
+    .innerJoin(resources, eq(resourceTopics.resourceId, resources.id))
     .where(isNull(resources.deletedAt))
 
   const countMap: Record<number, number> = {}
   for (const { topicId } of counts) {
-    if (topicId != null) countMap[topicId] = (countMap[topicId] ?? 0) + 1
+    countMap[topicId] = (countMap[topicId] ?? 0) + 1
   }
 
   return topicList.map((t) => ({ ...t, resourceCount: countMap[t.id] ?? 0 }))

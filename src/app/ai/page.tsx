@@ -3,12 +3,11 @@ import { Sparkles, Code2 } from 'lucide-react'
 import { TopBar } from '@/components/layout/TopBar'
 import { TopicSynthesis } from '@/components/ai/TopicSynthesis'
 import { getTopicIcon } from '@/lib/topics/icons'
-import { db } from '@/lib/db'
-import { resources, topics } from '@/lib/db/schema'
-import { isNull, eq } from 'drizzle-orm'
+import { getTopicById, getTopics } from '@/lib/topics/queries'
+import { getResourcesByTopicId } from '@/lib/resources/queries'
 
 export default async function AIPage() {
-  const topicList = await db.select().from(topics).orderBy(topics.name)
+  const topicList = await getTopics()
 
   return (
     <div>
@@ -59,9 +58,8 @@ export default async function AIPage() {
 
 async function TopicLoader({ topicId }: { topicId: number }) {
   const [topic, topicResources] = await Promise.all([
-    db.select().from(topics).where(eq(topics.id, topicId)).then((r) => r[0]),
-    db.select().from(resources).where(eq(resources.topicId, topicId))
-      .then((rows) => rows.filter((r) => r.deletedAt == null)),
+    getTopicById(topicId),
+    getResourcesByTopicId(topicId),
   ])
 
   if (!topic) return null

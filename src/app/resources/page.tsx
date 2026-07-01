@@ -30,7 +30,6 @@ export default async function ResourcesPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           {resources.map((r) => {
             const TypeIcon = getResourceIcon(r.type)
-            const TopicIcon = r.topicIcon ? getTopicIcon(r.topicIcon) : null
             return (
               <Link key={r.id} href={`/resources/${r.id}`} style={{ textDecoration: 'none' }}>
                 <div className="hf-card" style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -46,12 +45,15 @@ export default async function ResourcesPage() {
                     )}
                   </div>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-                    {r.topicName && TopicIcon && (
-                      <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                        <TopicIcon size={12} />
-                        {r.topicName}
-                      </span>
-                    )}
+                    {r.topics.map((t) => {
+                      const TopicIcon = getTopicIcon(t.icon)
+                      return (
+                        <span key={t.id} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
+                          <TopicIcon size={12} />
+                          {t.name}
+                        </span>
+                      )
+                    })}
                     <span className="hf-badge">{r.type}</span>
                   </div>
                 </div>

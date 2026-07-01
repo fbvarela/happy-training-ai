@@ -1,4 +1,4 @@
-import { AnyPgColumn, integer, pgTable, serial, text, timestamp } from "drizzle-orm/pg-core"
+import { AnyPgColumn, integer, pgTable, primaryKey, serial, text, timestamp } from "drizzle-orm/pg-core"
 
 export const topics = pgTable('topics', {
   id: serial('id').primaryKey(),
@@ -14,7 +14,6 @@ export const topics = pgTable('topics', {
 
 export const resources = pgTable("resources", {
   id: serial("id").primaryKey(),
-  topicId: integer("topic_id").references(() => topics.id),
   type: text("type").notNull(),
   title: text("title").notNull(),
   description: text("description"),
@@ -29,6 +28,13 @@ export const resources = pgTable("resources", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
   deletedAt: timestamp("deleted_at"),
 })
+
+export const resourceTopics = pgTable("resource_topics", {
+  resourceId: integer("resource_id").notNull().references(() => resources.id),
+  topicId: integer("topic_id").notNull().references(() => topics.id),
+}, (t) => [
+  primaryKey({ columns: [t.resourceId, t.topicId] }),
+])
 
 export const snippets = pgTable("snippets", {
   id: serial("id").primaryKey(),
@@ -63,3 +69,5 @@ export type ResourceElement = typeof resourceElements.$inferSelect
 export type NewResourceElement = typeof resourceElements.$inferInsert
 export type Snippet = typeof snippets.$inferSelect
 export type NewSnippet = typeof snippets.$inferInsert
+export type ResourceTopic = typeof resourceTopics.$inferSelect
+export type NewResourceTopic = typeof resourceTopics.$inferInsert

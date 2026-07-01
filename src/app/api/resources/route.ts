@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createResource, detectType, extractYouTubeId, getResources } from '@/lib/resources/queries'
+import { createResource, detectType, extractYouTubeId, getResources, setResourceTopics } from '@/lib/resources/queries'
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const body = await req.json()
-  const { url, title, description, topicId, type: explicitType, tags } = body
+  const { url, title, description, topicIds, type: explicitType, tags } = body
 
   if (!title?.trim()) {
     return NextResponse.json({ error: 'Title is required' }, { status: 400 })
@@ -34,11 +34,13 @@ export async function POST(req: NextRequest) {
     description: description?.trim() ?? null,
     url: url?.trim() ?? null,
     type: resolvedType,
-    topicId: topicId ? Number(topicId) : null,
     thumbnailUrl,
     tags: JSON.stringify(tags ?? []),
     transcriptStatus: resolvedType === 'video' ? 'pending' : null,
   })
+
+  const ids: number[] = Array.isArray(topicIds) ? topicIds.map(Number) : []
+  if (ids.length > 0) await setResourceTopics(resource.id, ids)
 
   return NextResponse.json(resource, { status: 201 })
 }
