@@ -1,14 +1,12 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { Pencil, Plus } from 'lucide-react'
-import { eq } from 'drizzle-orm'
 import { TopBar } from '@/components/layout/TopBar'
 import { DeleteTopicButton } from '@/components/topics/DeleteTopicButton'
 import { getTopicById } from '@/lib/topics/queries'
 import { getTopicIcon } from '@/lib/topics/icons'
 import { getResourceIcon as getResIcon } from '@/lib/resources/icons'
-import { db } from '@/lib/db'
-import { resources } from '@/lib/db/schema'
+import { getResourcesByTopicId } from '@/lib/resources/queries'
 
 export default async function TopicDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -17,11 +15,7 @@ export default async function TopicDetailPage({ params }: { params: Promise<{ id
 
   const TopicIcon = getTopicIcon(topic.icon)
 
-  const topicResources = await db
-    .select()
-    .from(resources)
-    .where(eq(resources.topicId, Number(id)))
-    .then((rows) => rows.filter((r) => r.deletedAt == null))
+  const topicResources = await getResourcesByTopicId(Number(id))
 
   return (
     <div>

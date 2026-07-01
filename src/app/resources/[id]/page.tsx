@@ -59,7 +59,6 @@ export default async function ResourceDetailPage({ params }: { params: Promise<{
   const items: ElementWithContent[] = selfItem ? [selfItem, ...elementsWithContent] : elementsWithContent
 
   const TypeIcon = getResourceIcon(resource.type)
-  const TopicIcon = resource.topicIcon ? getTopicIcon(resource.topicIcon) : null
 
   return (
     <div>
@@ -81,11 +80,14 @@ export default async function ResourceDetailPage({ params }: { params: Promise<{
         <span className="hf-badge" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
           <TypeIcon size={12} /> {resource.type}
         </span>
-        {resource.topicName && TopicIcon && (
-          <span className="hf-badge" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
-            <TopicIcon size={12} /> {resource.topicName}
-          </span>
-        )}
+        {resource.topics.map((t) => {
+          const TopicIcon = getTopicIcon(t.icon)
+          return (
+            <span key={t.id} className="hf-badge" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+              <TopicIcon size={12} /> {t.name}
+            </span>
+          )
+        })}
       </div>
 
       <ResourceWorkspace

@@ -3,23 +3,26 @@
 import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { toast } from 'sonner'
+import { TopicMultiSelect } from '@/components/topics/TopicMultiSelect'
 import type { Resource, Topic } from '@/lib/db/schema'
 
 interface ResourceFormProps {
-  resource?: Resource & { topicName?: string | null }
+  resource?: Resource & { topics?: Topic[] }
   topics: Topic[]
 }
 
 export function ResourceForm({ resource, topics }: ResourceFormProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const defaultTopicId = searchParams.get('topicId') ?? resource?.topicId?.toString() ?? ''
+  const searchParamTopicId = searchParams.get('topicId')
+  const defaultTopicIds = resource?.topics?.map((t) => t.id)
+    ?? (searchParamTopicId ? [Number(searchParamTopicId)] : [])
 
   const [loading, setLoading] = useState(false)
   const [url, setUrl] = useState(resource?.url ?? '')
   const [title, setTitle] = useState(resource?.title ?? '')
   const [description, setDescription] = useState(resource?.description ?? '')
-  const [topicId, setTopicId] = useState(defaultTopicId)
+  const [topicIds, setTopicIds] = useState<number[]>(defaultTopicIds)
   const [type, setType] = useState(resource?.type ?? 'article')
 
   function handleUrlChange(val: string) {
@@ -48,7 +51,7 @@ export function ResourceForm({ resource, topics }: ResourceFormProps) {
           description,
           url: url || null,
           type,
-          topicId: topicId || null,
+          topicIds,
         }),
       })
 
@@ -123,21 +126,8 @@ export function ResourceForm({ resource, topics }: ResourceFormProps) {
       </div>
 
       <div className="field">
-        <label className="input-label" htmlFor="topic">Topic</label>
-        <select
-          id="topic"
-          className="hf-input"
-          value={topicId}
-          onChange={(e) => setTopicId(e.target.value)}
-          style={{ cursor: 'pointer' }}
-        >
-          <option value="">— No topic —</option>
-          {topics.map((t) => (
-            <option key={t.id} value={String(t.id)}>
-              {t.icon} {t.name}
-            </option>
-          ))}
-        </select>
+        <label className="input-label" htmlFor="topics">Topics</label>
+        <TopicMultiSelect id="topics" topics={topics} selectedIds={topicIds} onChange={setTopicIds} />
       </div>
 
       <div style={{ display: 'flex', gap: '10px', paddingTop: '4px' }}>

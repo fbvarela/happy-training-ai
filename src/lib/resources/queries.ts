@@ -1,38 +1,53 @@
-import { and, desc, eq, isNull, like, or } from 'drizzle-orm'
+import { and, desc, eq, inArray, isNull, like, or } from 'drizzle-orm'
 import { db } from '@/lib/db'
-import { resources, topics, type NewResource, type Resource } from '@/lib/db/schema'
+import { resources, resourceTopics, topics, type NewResource, type Resource, type Topic } from '@/lib/db/schema'
+
+type ResourceWithTopics = Resource & { topics: Topic[] }
+
+async function attachTopics<T extends Resource>(rows: T[]): Promise<(T & { topics: Topic[] })[]> {
+  if (rows.length === 0) return []
+
+  const links = await db
+    .select({
+      resourceId: resourceTopics.resourceId,
+      topic: topics,
+    })
+    .from(resourceTopics)
+    .innerJoin(topics, eq(resourceTopics.topicId, topics.id))
+    .where(inArray(resourceTopics.resourceId, rows.map((r) => r.id)))
+
+  const topicsByResource = new Map<number, Topic[]>()
+  for (const { resourceId, topic } of links) {
+    const list = topicsByResource.get(resourceId) ?? []
+    list.push(topic)
+    topicsByResource.set(resourceId, list)
+  }
+
+  return rows.map((r) => ({ ...r, topics: topicsByResource.get(r.id) ?? [] }))
+}
 
 export async function getResources(opts?: {
   topicId?: number
   type?: string
   search?: string
-}): Promise<(Resource & { topicName: string | null; topicIcon: string | null })[]> {
+}): Promise<ResourceWithTopics[]> {
+  const topicFilteredIds = opts?.topicId
+    ? await db
+        .select({ resourceId: resourceTopics.resourceId })
+        .from(resourceTopics)
+        .where(eq(resourceTopics.topicId, opts.topicId))
+        .then((rows) => rows.map((r) => r.resourceId))
+    : null
+
+  if (topicFilteredIds && topicFilteredIds.length === 0) return []
+
   const rows = await db
-    .select({
-      id: resources.id,
-      topicId: resources.topicId,
-      type: resources.type,
-      title: resources.title,
-      description: resources.description,
-      url: resources.url,
-      fileUrl: resources.fileUrl,
-      thumbnailUrl: resources.thumbnailUrl,
-      tags: resources.tags,
-      transcript: resources.transcript,
-      transcriptStatus: resources.transcriptStatus,
-      aiSummary: resources.aiSummary,
-      createdAt: resources.createdAt,
-      updatedAt: resources.updatedAt,
-      deletedAt: resources.deletedAt,
-      topicName: topics.name,
-      topicIcon: topics.icon,
-    })
+    .select()
     .from(resources)
-    .leftJoin(topics, eq(resources.topicId, topics.id))
     .where(
       and(
         isNull(resources.deletedAt),
-        opts?.topicId ? eq(resources.topicId, opts.topicId) : undefined,
+        topicFilteredIds ? inArray(resources.id, topicFilteredIds) : undefined,
         opts?.type ? eq(resources.type, opts.type as Resource['type']) : undefined,
         opts?.search
           ? or(
@@ -44,34 +59,21 @@ export async function getResources(opts?: {
     )
     .orderBy(desc(resources.createdAt))
 
-  return rows
+  return attachTopics(rows)
 }
 
-export async function getResourceById(id: number) {
+export async function getResourceById(id: number): Promise<ResourceWithTopics | undefined> {
   const rows = await db
-    .select({
-      id: resources.id,
-      topicId: resources.topicId,
-      type: resources.type,
-      title: resources.title,
-      description: resources.description,
-      url: resources.url,
-      fileUrl: resources.fileUrl,
-      thumbnailUrl: resources.thumbnailUrl,
-      tags: resources.tags,
-      transcript: resources.transcript,
-      transcriptStatus: resources.transcriptStatus,
-      aiSummary: resources.aiSummary,
-      createdAt: resources.createdAt,
-      updatedAt: resources.updatedAt,
-      deletedAt: resources.deletedAt,
-      topicName: topics.name,
-      topicIcon: topics.icon,
-    })
+    .select()
     .from(resources)
-    .leftJoin(topics, eq(resources.topicId, topics.id))
     .where(and(eq(resources.id, id), isNull(resources.deletedAt)))
-  return rows[0]
+  if (!rows[0]) return undefined
+  const [withTopics] = await attachTopics(rows)
+  return withTopics
+}
+
+export async function getResourcesByTopicId(topicId: number): Promise<ResourceWithTopics[]> {
+  return getResources({ topicId })
 }
 
 export async function createResource(data: NewResource) {
@@ -86,6 +88,14 @@ export async function updateResource(id: number, data: Partial<NewResource>) {
     .where(eq(resources.id, id))
     .returning()
   return rows[0]
+}
+
+/** Replace the full set of topics linked to a resource. */
+export async function setResourceTopics(resourceId: number, topicIds: number[]): Promise<void> {
+  await db.delete(resourceTopics).where(eq(resourceTopics.resourceId, resourceId))
+  if (topicIds.length > 0) {
+    await db.insert(resourceTopics).values(topicIds.map((topicId) => ({ resourceId, topicId })))
+  }
 }
 
 export async function softDeleteResource(id: number) {

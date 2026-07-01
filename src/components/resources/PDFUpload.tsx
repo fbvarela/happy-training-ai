@@ -4,6 +4,7 @@ import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Upload } from 'lucide-react'
 import { toast } from 'sonner'
+import { TopicMultiSelect } from '@/components/topics/TopicMultiSelect'
 import type { Topic } from '@/lib/db/schema'
 
 interface PDFUploadProps {
@@ -15,7 +16,7 @@ export function PDFUpload({ topics }: PDFUploadProps) {
   const inputRef = useRef<HTMLInputElement>(null)
   const [file, setFile] = useState<File | null>(null)
   const [title, setTitle] = useState('')
-  const [topicId, setTopicId] = useState<string | null>(null)
+  const [topicIds, setTopicIds] = useState<number[]>([])
   const [loading, setLoading] = useState(false)
 
   function handleFile(f: File) {
@@ -33,7 +34,6 @@ export function PDFUpload({ topics }: PDFUploadProps) {
       const formData = new FormData()
       formData.append('file', file)
       formData.append('title', title || file.name)
-      if (topicId) formData.append('topicId', topicId)
 
       const uploadRes = await fetch('/api/resources/upload', { method: 'POST', body: formData })
       if (!uploadRes.ok) throw new Error('Upload failed')
@@ -47,7 +47,7 @@ export function PDFUpload({ topics }: PDFUploadProps) {
           title: title || file.name,
           type: 'pdf',
           fileUrl,
-          topicId: topicId ? Number(topicId) : null,
+          topicIds,
         }),
       })
       if (!createRes.ok) throw new Error('Failed to save resource')
@@ -89,11 +89,8 @@ export function PDFUpload({ topics }: PDFUploadProps) {
       </div>
 
       <div className="field" style={{ margin: 0 }}>
-        <label className="input-label" htmlFor="pdf-topic">Topic</label>
-        <select id="pdf-topic" className="hf-input" value={topicId ?? ''} onChange={e => setTopicId(e.target.value || null)} style={{ cursor: 'pointer' }}>
-          <option value="">— No topic —</option>
-          {topics.map(t => <option key={t.id} value={String(t.id)}>{t.icon} {t.name}</option>)}
-        </select>
+        <label className="input-label" htmlFor="pdf-topics">Topics</label>
+        <TopicMultiSelect id="pdf-topics" topics={topics} selectedIds={topicIds} onChange={setTopicIds} />
       </div>
 
       <div>
