@@ -17,7 +17,7 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   const body = await req.json()
-  const { url, title, description, topicIds, type: explicitType, tags } = body
+  const { url, fileUrl, title, description, topicIds, type: explicitType, tags } = body
 
   if (!title?.trim()) {
     return NextResponse.json({ error: 'Title is required' }, { status: 400 })
@@ -33,6 +33,7 @@ export async function POST(req: NextRequest) {
     title: title.trim(),
     description: description?.trim() ?? null,
     url: url?.trim() ?? null,
+    fileUrl: fileUrl?.trim() ?? null,
     type: resolvedType,
     thumbnailUrl,
     tags: JSON.stringify(tags ?? []),
