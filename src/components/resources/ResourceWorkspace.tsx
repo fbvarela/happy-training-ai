@@ -3,13 +3,16 @@
 import { useRef, useState, type ReactNode } from 'react'
 import {
   Plus, Trash2, Pencil, Check, X,
-  Video, FileText, Newspaper, Paperclip, Image as ImageIcon,
+  Video, FileText, Newspaper, Paperclip, Image as ImageIcon, Code2,
   Upload, Link as LinkIcon, Loader2, ExternalLink, ChevronDown, ChevronUp,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import type { ResourceElement } from '@/lib/db/schema'
 import { TranscriptBlock } from './TranscriptBlock'
 import { TranscribeButton } from './TranscribeButton'
+import { CodeEditor } from '../snippets/CodeEditor'
+import { CodeView } from '../snippets/CodeView'
+import { LANGUAGES } from '@/lib/snippets/languages'
 import { proxyImageUrl } from '@/lib/r2'
 import { compressImageFile } from '@/lib/image/compress'
 
@@ -33,6 +36,7 @@ function TypeGlyph({ type, size, style }: { type: string; size: number; style?: 
     case 'pdf':     return <FileText size={size} style={style} />
     case 'image':   return <ImageIcon size={size} style={style} />
     case 'article': return <Newspaper size={size} style={style} />
+    case 'snippet': return <Code2 size={size} style={style} />
     default:        return <Paperclip size={size} style={style} />
   }
 }
@@ -194,11 +198,17 @@ function ImageContent({ element }: { element: ElementWithContent }) {
   )
 }
 
+function SnippetContent({ element }: { element: ElementWithContent }) {
+  if (!element.code) return null
+  return <CodeView code={element.code} language={element.language ?? 'typescript'} />
+}
+
 function InlineContent({ element }: { element: ElementWithContent }) {
   if (element.type === 'video') return <VideoEmbed element={element} />
   if (element.type === 'pdf') return <PdfEmbed element={element} />
   if (element.type === 'image') return <ImageContent element={element} />
   if (element.type === 'article') return <ArticleContent element={element} />
+  if (element.type === 'snippet') return <SnippetContent element={element} />
   return <FileContent element={element} />
 }
 
@@ -222,20 +232,25 @@ function MainPanel({
   const [type, setType] = useState(element.type)
   const [url, setUrl] = useState(element.url ?? '')
   const [title, setTitle] = useState(element.title ?? '')
+  const [language, setLanguage] = useState(element.language ?? 'typescript')
+  const [code, setCode] = useState(element.code ?? '')
   const [saving, setSaving] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
 
   const displayTitle = element.title
-    || (element.type === 'video' ? 'Video' : element.type === 'pdf' ? 'PDF' : element.type === 'article' ? 'Article' : 'File')
+    || (element.type === 'video' ? 'Video' : element.type === 'pdf' ? 'PDF' : element.type === 'article' ? 'Article' : element.type === 'snippet' ? 'Snippet' : 'File')
 
   async function save() {
     setSaving(true)
     try {
+      const body = type === 'snippet'
+        ? { title: title.trim() || null, type, language, code: code.trim() }
+        : { url: url.trim() || null, title: title.trim() || null, type }
       const res = await fetch(`/api/resources/${resourceId}/elements/${element.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url: url.trim() || null, title: title.trim() || null, type }),
+        body: JSON.stringify(body),
       })
       if (!res.ok) throw new Error()
       onUpdate({ ...await res.json(), extractedHtml: element.extractedHtml })
@@ -287,7 +302,7 @@ function MainPanel({
           </>
         ) : editing ? (
           <>
-            <button onClick={() => { setEditing(false); setUrl(element.url ?? ''); setTitle(element.title ?? ''); setType(element.type) }}
+            <button onClick={() => { setEditing(false); setUrl(element.url ?? ''); setTitle(element.title ?? ''); setType(element.type); setLanguage(element.language ?? 'typescript'); setCode(element.code ?? '') }}
               className="btn btn-ghost btn-sm" style={{ padding: '4px 8px' }}>
               <X size={13} /> Cancel
             </button>
@@ -315,19 +330,31 @@ function MainPanel({
       {/* Edit form */}
       {editing && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '20px', padding: '14px', background: 'var(--cream)', border: '1.5px solid var(--line)', borderRadius: '10px' }}>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <select className="hf-input" value={type} onChange={e => setType(e.target.value)} style={{ width: '120px', flexShrink: 0, padding: '6px 8px', fontSize: '0.82rem' }}>
-              {TYPE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
-            </select>
-            <input
-              className="hf-input" type="url" placeholder="URL" value={url} autoFocus
-              onChange={e => { setUrl(e.target.value); if (e.target.value) setType(detectType(e.target.value)) }}
-              style={{ flex: 1, padding: '6px 10px', fontSize: '0.85rem' }}
-            />
-          </div>
-          <input className="hf-input" placeholder="Title (optional)" value={title} onChange={e => setTitle(e.target.value)} style={{ padding: '6px 10px', fontSize: '0.82rem' }} />
-          {element.fileUrl && (
-            <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>File: {element.fileUrl.split('/').pop()}</div>
+          {type === 'snippet' ? (
+            <>
+              <select className="hf-input" value={language} onChange={e => setLanguage(e.target.value)} style={{ width: '160px', padding: '6px 8px', fontSize: '0.82rem' }}>
+                {LANGUAGES.map(l => <option key={l} value={l}>{l}</option>)}
+              </select>
+              <input className="hf-input" placeholder="Title (optional)" value={title} onChange={e => setTitle(e.target.value)} style={{ padding: '6px 10px', fontSize: '0.82rem' }} />
+              <CodeEditor value={code} onChange={setCode} language={language} />
+            </>
+          ) : (
+            <>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <select className="hf-input" value={type} onChange={e => setType(e.target.value)} style={{ width: '120px', flexShrink: 0, padding: '6px 8px', fontSize: '0.82rem' }}>
+                  {TYPE_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+                </select>
+                <input
+                  className="hf-input" type="url" placeholder="URL" value={url} autoFocus
+                  onChange={e => { setUrl(e.target.value); if (e.target.value) setType(detectType(e.target.value)) }}
+                  style={{ flex: 1, padding: '6px 10px', fontSize: '0.85rem' }}
+                />
+              </div>
+              <input className="hf-input" placeholder="Title (optional)" value={title} onChange={e => setTitle(e.target.value)} style={{ padding: '6px 10px', fontSize: '0.82rem' }} />
+              {element.fileUrl && (
+                <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>File: {element.fileUrl.split('/').pop()}</div>
+              )}
+            </>
           )}
         </div>
       )}
@@ -336,7 +363,7 @@ function MainPanel({
       <InlineContent element={element} />
 
       {/* Transcribe + transcript */}
-      {element.type !== 'image' && (
+      {element.type !== 'image' && element.type !== 'snippet' && (
         <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {element.type === 'video' && (element.isResource || element.id > 0) && (
             <div>
@@ -371,7 +398,7 @@ function ComplementCard({
 }) {
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
-  const sub = element.url ?? element.fileUrl ?? element.type
+  const sub = element.type === 'snippet' ? (element.language ?? 'snippet') : (element.url ?? element.fileUrl ?? element.type)
 
   async function remove() {
     setConfirmDelete(false)
@@ -451,10 +478,12 @@ function AddForm({
   onSaved: (el: ElementWithContent) => void
   onCancel: () => void
 }) {
-  const [mode, setMode] = useState<'file' | 'url'>('file')
+  const [mode, setMode] = useState<'file' | 'url' | 'snippet'>('file')
   const [type, setType] = useState('pdf')
   const [url, setUrl] = useState('')
   const [title, setTitle] = useState('')
+  const [language, setLanguage] = useState('typescript')
+  const [code, setCode] = useState('')
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [uploadedFileUrl, setUploadedFileUrl] = useState<string | null>(null)
@@ -491,11 +520,14 @@ function AddForm({
   async function save() {
     if (mode === 'url' && !url.trim()) { toast.error('URL is required'); return }
     if (mode === 'file' && !uploadedFileUrl) { toast.error('Please select a file'); return }
+    if (mode === 'snippet' && !code.trim()) { toast.error('Code is required'); return }
     setSaving(true)
     try {
       const body = mode === 'url'
         ? { url: url.trim(), title: title.trim() || null, type, order }
-        : { fileUrl: uploadedFileUrl, title: title.trim() || null, type, order }
+        : mode === 'snippet'
+          ? { type: 'snippet', title: title.trim() || null, language, code: code.trim(), order }
+          : { fileUrl: uploadedFileUrl, title: title.trim() || null, type, order }
       const res = await fetch(`/api/resources/${resourceId}/elements`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -510,7 +542,7 @@ function AddForm({
     }
   }
 
-  const canSave = mode === 'url' ? !!url.trim() : !!uploadedFileUrl
+  const canSave = mode === 'url' ? !!url.trim() : mode === 'snippet' ? !!code.trim() : !!uploadedFileUrl
 
   return (
     <div style={{ border: '1.5px dashed var(--sun)', borderRadius: '10px', padding: '12px', background: 'var(--cream)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
@@ -521,9 +553,20 @@ function AddForm({
         <button onClick={() => setMode('url')} className={`btn btn-sm ${mode === 'url' ? 'btn-primary' : 'btn-ghost'}`} style={{ fontSize: '0.76rem', flex: 1, justifyContent: 'center' }}>
           <LinkIcon size={12} /> URL
         </button>
+        <button onClick={() => setMode('snippet')} className={`btn btn-sm ${mode === 'snippet' ? 'btn-primary' : 'btn-ghost'}`} style={{ fontSize: '0.76rem', flex: 1, justifyContent: 'center' }}>
+          <Code2 size={12} /> Snippet
+        </button>
       </div>
 
-      {mode === 'file' ? (
+      {mode === 'snippet' ? (
+        <>
+          <select className="hf-input" value={language} onChange={e => setLanguage(e.target.value)} style={{ padding: '6px 8px', fontSize: '0.82rem' }}>
+            {LANGUAGES.map(l => <option key={l} value={l}>{l}</option>)}
+          </select>
+          <input className="hf-input" placeholder="Title (optional)" value={title} onChange={e => setTitle(e.target.value)} style={{ padding: '6px 10px', fontSize: '0.82rem' }} />
+          <CodeEditor value={code} onChange={setCode} language={language} />
+        </>
+      ) : mode === 'file' ? (
         <>
           <input ref={fileInputRef} type="file" style={{ display: 'none' }} onChange={e => { const f = e.target.files?.[0]; if (f) handleFile(f) }} />
           {uploadedFileUrl ? (

@@ -7,6 +7,7 @@ import { extractArticle } from '@/lib/resources/articleExtract'
 import { ReaderView } from '@/components/resources/ReaderView'
 import { TranscribeButton } from '@/components/resources/TranscribeButton'
 import { TranscriptBlock } from '@/components/resources/TranscriptBlock'
+import { CodeView } from '@/components/snippets/CodeView'
 import { proxyImageUrl } from '@/lib/r2'
 import type { ResourceElement } from '@/lib/db/schema'
 
@@ -22,7 +23,7 @@ export default async function ReadPage({ params }: { params: Promise<{ id: strin
   const items: ResourceElement[] = elements.length > 0
     ? elements
     : resource.url
-      ? [{ id: -1, resourceId: resource.id, type: resource.type, url: resource.url, fileUrl: resource.fileUrl, title: null, order: 0, transcript: resource.transcript, transcriptStatus: resource.transcriptStatus, createdAt: resource.createdAt }]
+      ? [{ id: -1, resourceId: resource.id, type: resource.type, url: resource.url, fileUrl: resource.fileUrl, title: null, order: 0, transcript: resource.transcript, transcriptStatus: resource.transcriptStatus, language: null, code: null, createdAt: resource.createdAt }]
       : []
 
   return (
@@ -156,6 +157,21 @@ async function ElementBlock({ element, index, total }: { element: ResourceElemen
           alt={element.title ?? 'Image'}
           style={{ width: '100%', maxHeight: '720px', objectFit: 'contain', borderRadius: '10px', border: '1px solid var(--line)' }}
         />
+      </div>
+    )
+  }
+
+  if (element.type === 'snippet') {
+    if (!element.code) return null
+    return (
+      <div style={{ marginBottom: index < total - 1 ? '40px' : 0 }}>
+        {showDivider && <hr style={{ border: 'none', borderTop: '1px solid var(--line)', margin: '0 0 32px' }} />}
+        {element.title && (
+          <h2 style={{ fontFamily: '"Fraunces", serif', fontSize: '1.15em', color: 'var(--bark)', marginBottom: '14px' }}>
+            {element.title}
+          </h2>
+        )}
+        <CodeView code={element.code} language={element.language ?? 'typescript'} />
       </div>
     )
   }

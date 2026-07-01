@@ -51,13 +51,15 @@ export const snippets = pgTable("snippets", {
 export const resourceElements = pgTable('resource_elements', {
   id: serial('id').primaryKey(),
   resourceId: integer('resource_id').notNull().references(() => resources.id),
-  type: text('type').notNull(), // 'video' | 'pdf' | 'article' | 'file'
+  type: text('type').notNull(), // 'video' | 'pdf' | 'article' | 'file' | 'image' | 'snippet'
   url: text('url'),
   fileUrl: text('file_url'),
   title: text('title'),
   order: integer('order').notNull().default(0),
   transcript: text('transcript'),
   transcriptStatus: text('transcript_status'),
+  language: text('language'), // set when type = 'snippet'
+  code: text('code'), // set when type = 'snippet'
   createdAt: timestamp('created_at').notNull().defaultNow(),
 })
 
