@@ -722,7 +722,7 @@
 
   .resource-detail-layout {
     display: grid;
-    grid-template-columns: 1fr 340px;
+    grid-template-columns: minmax(0, 1fr) 340px;
     gap: 32px;
     align-items: start;
   }
@@ -739,7 +739,7 @@
 
   @media (max-width: 900px) {
     .resource-detail-layout {
-      grid-template-columns: 1fr;
+      grid-template-columns: minmax(0, 1fr);
     }
     .resource-detail-sidebar {
       position: static;
