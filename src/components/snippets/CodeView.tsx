@@ -26,7 +26,7 @@ export function CodeView({ code, language }: CodeViewProps) {
   }
 
   return (
-    <div style={{ position: 'relative' }} className="group">
+    <div style={{ position: 'relative', width: '100%', maxWidth: '100%', minWidth: 0 }} className="group">
       <button
         onClick={handleCopy}
         style={{
@@ -48,12 +48,12 @@ export function CodeView({ code, language }: CodeViewProps) {
       <style>{`.group:hover .copy-btn { opacity: 1 !important }`}</style>
       {html ? (
         <div
-          style={{ fontSize: '0.875rem', borderRadius: '10px', overflow: 'auto' }}
-          className="[&_pre]:p-4 [&_pre]:rounded-none [&_pre]:m-0"
+          style={{ fontSize: '0.875rem', borderRadius: '10px', overflow: 'auto', width: '100%', maxWidth: '100%' }}
+          className="[&_pre]:p-4 [&_pre]:rounded-none [&_pre]:m-0 [&_pre]:overflow-auto [&_pre]:max-w-full"
           dangerouslySetInnerHTML={{ __html: html }}
         />
       ) : (
-        <pre style={{ background: 'var(--cream)', borderRadius: '10px', padding: '16px', fontSize: '0.875rem', overflow: 'auto', border: '1px solid var(--line)' }}>
+        <pre style={{ background: 'var(--cream)', borderRadius: '10px', padding: '16px', fontSize: '0.875rem', overflow: 'auto', border: '1px solid var(--line)', width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
           <code>{code}</code>
         </pre>
       )}
