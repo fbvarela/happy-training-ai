@@ -7,6 +7,7 @@ import { defaultKeymap, indentWithTab } from '@codemirror/commands'
 import { javascript } from '@codemirror/lang-javascript'
 import { python } from '@codemirror/lang-python'
 import { sql } from '@codemirror/lang-sql'
+import { java } from '@codemirror/lang-java'
 import { oneDark } from '@codemirror/theme-one-dark'
 
 const langExtension = (lang: string) => {
@@ -18,6 +19,8 @@ const langExtension = (lang: string) => {
       return python()
     case 'sql':
       return sql()
+    case 'java':
+      return java()
     default:
       return javascript()
   }

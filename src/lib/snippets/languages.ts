@@ -1,5 +1,5 @@
 export const LANGUAGES = [
-  'typescript', 'javascript', 'python', 'sql', 'bash',
+  'typescript', 'javascript', 'python', 'java', 'sql', 'bash',
   'go', 'rust', 'json', 'yaml', 'html', 'css', 'markdown',
 ] as const
 
