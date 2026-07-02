@@ -12,6 +12,7 @@ import { TranscriptBlock } from './TranscriptBlock'
 import { TranscribeButton } from './TranscribeButton'
 import { CodeEditor } from '../snippets/CodeEditor'
 import { CodeView } from '../snippets/CodeView'
+import { MarkdownPreview } from '../markdown/MarkdownPreview'
 import { LANGUAGES } from '@/lib/snippets/languages'
 import { proxyImageUrl } from '@/lib/r2'
 import { compressImageFile } from '@/lib/image/compress'
@@ -234,6 +235,7 @@ function MainPanel({
   const [title, setTitle] = useState(element.title ?? '')
   const [language, setLanguage] = useState(element.language ?? 'typescript')
   const [code, setCode] = useState(element.code ?? '')
+  const [previewing, setPreviewing] = useState(false)
   const [saving, setSaving] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -302,7 +304,7 @@ function MainPanel({
           </>
         ) : editing ? (
           <>
-            <button onClick={() => { setEditing(false); setUrl(element.url ?? ''); setTitle(element.title ?? ''); setType(element.type); setLanguage(element.language ?? 'typescript'); setCode(element.code ?? '') }}
+            <button onClick={() => { setEditing(false); setUrl(element.url ?? ''); setTitle(element.title ?? ''); setType(element.type); setLanguage(element.language ?? 'typescript'); setCode(element.code ?? ''); setPreviewing(false) }}
               className="btn btn-ghost btn-sm" style={{ padding: '4px 8px' }}>
               <X size={13} /> Cancel
             </button>
@@ -336,7 +338,21 @@ function MainPanel({
                 {LANGUAGES.map(l => <option key={l} value={l}>{l}</option>)}
               </select>
               <input className="hf-input" placeholder="Title (optional)" value={title} onChange={e => setTitle(e.target.value)} style={{ padding: '6px 10px', fontSize: '0.82rem' }} />
-              <CodeEditor value={code} onChange={setCode} language={language} />
+              {language === 'markdown' && (
+                <div style={{ display: 'flex', gap: '6px' }}>
+                  <button type="button" onClick={() => setPreviewing(false)} className={`btn btn-sm ${!previewing ? 'btn-primary' : 'btn-ghost'}`} style={{ fontSize: '0.75rem' }}>
+                    Source
+                  </button>
+                  <button type="button" onClick={() => setPreviewing(true)} className={`btn btn-sm ${previewing ? 'btn-primary' : 'btn-ghost'}`} style={{ fontSize: '0.75rem' }}>
+                    Preview
+                  </button>
+                </div>
+              )}
+              {language === 'markdown' && previewing ? (
+                <MarkdownPreview content={code} />
+              ) : (
+                <CodeEditor value={code} onChange={setCode} language={language} />
+              )}
             </>
           ) : (
             <>
@@ -359,8 +375,8 @@ function MainPanel({
         </div>
       )}
 
-      {/* Content */}
-      <InlineContent element={element} />
+      {/* Content — hidden while editing a snippet, since the edit form above already has its own Source/Preview toggle */}
+      {!(editing && element.type === 'snippet') && <InlineContent element={element} />}
 
       {/* Transcribe + transcript */}
       {element.type !== 'image' && element.type !== 'snippet' && (
@@ -484,6 +500,7 @@ function AddForm({
   const [title, setTitle] = useState('')
   const [language, setLanguage] = useState('typescript')
   const [code, setCode] = useState('')
+  const [previewing, setPreviewing] = useState(false)
   const [saving, setSaving] = useState(false)
   const [uploading, setUploading] = useState(false)
   const [uploadedFileUrl, setUploadedFileUrl] = useState<string | null>(null)
@@ -564,7 +581,21 @@ function AddForm({
             {LANGUAGES.map(l => <option key={l} value={l}>{l}</option>)}
           </select>
           <input className="hf-input" placeholder="Title (optional)" value={title} onChange={e => setTitle(e.target.value)} style={{ padding: '6px 10px', fontSize: '0.82rem' }} />
-          <CodeEditor value={code} onChange={setCode} language={language} />
+          {language === 'markdown' && (
+            <div style={{ display: 'flex', gap: '6px' }}>
+              <button type="button" onClick={() => setPreviewing(false)} className={`btn btn-sm ${!previewing ? 'btn-primary' : 'btn-ghost'}`} style={{ fontSize: '0.75rem' }}>
+                Source
+              </button>
+              <button type="button" onClick={() => setPreviewing(true)} className={`btn btn-sm ${previewing ? 'btn-primary' : 'btn-ghost'}`} style={{ fontSize: '0.75rem' }}>
+                Preview
+              </button>
+            </div>
+          )}
+          {language === 'markdown' && previewing ? (
+            <MarkdownPreview content={code} />
+          ) : (
+            <CodeEditor value={code} onChange={setCode} language={language} />
+          )}
         </>
       ) : mode === 'file' ? (
         <>

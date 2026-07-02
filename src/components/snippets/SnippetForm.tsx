@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import { CodeEditor } from './CodeEditor'
+import { MarkdownPreview } from '@/components/markdown/MarkdownPreview'
 import { LANGUAGES, type Language } from '@/lib/snippets/languages'
 import type { Snippet } from '@/lib/db/schema'
 
@@ -18,6 +19,7 @@ export function SnippetForm({ snippet }: SnippetFormProps) {
   const [description, setDescription] = useState(snippet?.description ?? '')
   const [language, setLanguage] = useState<Language>((snippet?.language as Language) ?? 'typescript')
   const [code, setCode] = useState(snippet?.code ?? '')
+  const [previewing, setPreviewing] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -88,8 +90,24 @@ export function SnippetForm({ snippet }: SnippetFormProps) {
       </div>
 
       <div className="field" style={{ margin: 0 }}>
-        <label className="input-label">Code *</label>
-        <CodeEditor value={code} onChange={setCode} language={language} />
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
+          <label className="input-label" style={{ margin: 0 }}>Code *</label>
+          {language === 'markdown' && (
+            <div style={{ display: 'flex', gap: '6px' }}>
+              <button type="button" onClick={() => setPreviewing(false)} className={`btn btn-sm ${!previewing ? 'btn-primary' : 'btn-ghost'}`} style={{ fontSize: '0.75rem' }}>
+                Source
+              </button>
+              <button type="button" onClick={() => setPreviewing(true)} className={`btn btn-sm ${previewing ? 'btn-primary' : 'btn-ghost'}`} style={{ fontSize: '0.75rem' }}>
+                Preview
+              </button>
+            </div>
+          )}
+        </div>
+        {language === 'markdown' && previewing ? (
+          <MarkdownPreview content={code} />
+        ) : (
+          <CodeEditor value={code} onChange={setCode} language={language} />
+        )}
       </div>
 
       <div style={{ display: 'flex', gap: '10px' }}>
