@@ -18,11 +18,5 @@ export function MarkdownPreview({ content }: MarkdownPreviewProps) {
     )
   }
 
-  return (
-    <div
-      className="reader-body"
-      style={{ background: 'var(--cream)', border: '1px solid var(--line)', borderRadius: '10px', padding: '16px 20px' }}
-      dangerouslySetInnerHTML={{ __html: html }}
-    />
-  )
+  return <div className="reader-body" dangerouslySetInnerHTML={{ __html: html }} />
 }
