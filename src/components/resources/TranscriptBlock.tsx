@@ -68,6 +68,13 @@ export function TranscriptBlock({ transcript: initial, resourceId, elementId, in
     document.execCommand(command)
   }
 
+  function handlePaste(e: React.ClipboardEvent<HTMLDivElement>) {
+    e.preventDefault()
+    const text = e.clipboardData.getData('text/plain')
+    if (!text) return
+    document.execCommand('insertHTML', false, plainToHtml(text))
+  }
+
   function applyFontSize(size: keyof typeof FONT_SIZES) {
     const sel = window.getSelection()
     if (!sel || sel.rangeCount === 0 || sel.isCollapsed || !editorRef.current) return
@@ -115,8 +122,9 @@ export function TranscriptBlock({ transcript: initial, resourceId, elementId, in
     const toastId = toast.loading('Rewriting transcript… this may take a minute')
     try {
       const res = await fetch(rewriteEndpoint, { method: 'POST' })
-      const data = await res.json()
-      if (!res.ok) throw new Error(data.error ?? 'Rewrite failed')
+      const raw = await res.text()
+      const data = raw ? JSON.parse(raw) : null
+      if (!res.ok || !data) throw new Error(data?.error ?? 'Rewrite failed')
       setTranscript(data.transcript)
       toast.success('Transcript rewritten!', { id: toastId })
     } catch (err) {
@@ -247,6 +255,7 @@ export function TranscriptBlock({ transcript: initial, resourceId, elementId, in
               className="tb-content tb-editor hf-input"
               contentEditable
               suppressContentEditableWarning
+              onPaste={handlePaste}
               data-placeholder="Paste a transcript here…"
               autoFocus
             />

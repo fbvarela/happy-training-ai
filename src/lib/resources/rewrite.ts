@@ -18,6 +18,22 @@ Rules:
 - Paragraphs separated by blank lines. Section headings on their own line in ALL CAPS.
 - It is critical that you do NOT summarize or shorten the text.`
 
+const HTML_TAG_RE = /<(p|div|h1|h2|h3|h4|strong|b|em|i|span|br)\b/i
+
+function stripHtml(text: string): string {
+  if (!HTML_TAG_RE.test(text)) return text
+  return text
+    .replace(/<\/(p|div|h[1-4])>/gi, '\n\n')
+    .replace(/<br\s*\/?>/gi, '\n')
+    .replace(/<[^>]+>/g, '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim()
+}
+
 function splitIntoChunks(text: string): string[] {
   const chunks: string[] = []
   let start = 0
@@ -53,10 +69,11 @@ async function rewriteChunk(chunk: string): Promise<string> {
 }
 
 export async function rewriteTranscript(rawTranscript: string): Promise<string> {
-  if (rawTranscript.length <= CHUNK_THRESHOLD) {
-    return rewriteChunk(rawTranscript)
+  const text = stripHtml(rawTranscript)
+  if (text.length <= CHUNK_THRESHOLD) {
+    return rewriteChunk(text)
   }
-  const chunks = splitIntoChunks(rawTranscript)
+  const chunks = splitIntoChunks(text)
   const parts = await Promise.all(chunks.map(chunk => rewriteChunk(chunk)))
   return parts.join('\n\n')
 }
