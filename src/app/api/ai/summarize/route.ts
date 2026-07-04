@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
   const text = transcript ?? content ?? ''
 
   const result = streamText({
-    model: groq('llama-3.3-70b-versatile'),
+    model: groq('llama-3.1-8b-instant'),
     system: `You are a technical content summarizer. Given a ${type ?? 'resource'} titled "${title}", produce a concise summary.
 Structure your response as:
 1. **Summary** — 2-3 sentences capturing the main idea
