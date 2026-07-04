@@ -1,6 +1,7 @@
 'use client'
 
 import type { Topic } from '@/lib/db/schema'
+import { getTopicIcon } from '@/lib/topics/icons'
 
 interface Props {
   topics: Topic[]
@@ -33,6 +34,7 @@ export function TopicMultiSelect({ topics, selectedIds, onChange, id }: Props) {
     >
       {topics.map((t) => {
         const checked = selectedIds.includes(t.id)
+        const Icon = getTopicIcon(t.icon)
         return (
           <label
             key={t.id}
@@ -52,7 +54,8 @@ export function TopicMultiSelect({ topics, selectedIds, onChange, id }: Props) {
               onChange={() => toggle(t.id)}
               style={{ margin: 0 }}
             />
-            {t.icon} {t.name}
+            <Icon size={14} />
+            {t.name}
           </label>
         )
       })}
