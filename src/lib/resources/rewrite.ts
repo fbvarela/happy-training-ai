@@ -1,5 +1,6 @@
 import { generateText } from 'ai'
 import { createGroq } from '@ai-sdk/groq'
+import { stripHtml } from '@/lib/text/stripHtml'
 
 const CHUNK_SIZE = 8_000
 const CHUNK_THRESHOLD = 9_000
@@ -17,22 +18,6 @@ Rules:
 - Output plain text only. No markdown symbols (**, #, -, etc.).
 - Paragraphs separated by blank lines. Section headings on their own line in ALL CAPS.
 - It is critical that you do NOT summarize or shorten the text.`
-
-const HTML_TAG_RE = /<(p|div|h1|h2|h3|h4|strong|b|em|i|span|br)\b/i
-
-function stripHtml(text: string): string {
-  if (!HTML_TAG_RE.test(text)) return text
-  return text
-    .replace(/<\/(p|div|h[1-4])>/gi, '\n\n')
-    .replace(/<br\s*\/?>/gi, '\n')
-    .replace(/<[^>]+>/g, '')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/\n{3,}/g, '\n\n')
-    .trim()
-}
 
 function splitIntoChunks(text: string): string[] {
   const chunks: string[] = []
