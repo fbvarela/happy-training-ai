@@ -10,6 +10,7 @@ import { toast } from 'sonner'
 import type { ResourceElement } from '@/lib/db/schema'
 import { TranscriptBlock } from './TranscriptBlock'
 import { TranscribeButton } from './TranscribeButton'
+import { ExplainTranscript } from '../ai/ExplainTranscript'
 import { CodeEditor } from '../snippets/CodeEditor'
 import { CodeView } from '../snippets/CodeView'
 import { MarkdownPreview } from '../markdown/MarkdownPreview'
@@ -221,6 +222,7 @@ function MainPanel({
   onUpdate,
   onDelete,
   onHide,
+  onElementAdded,
 }: {
   element: ElementWithContent
   resourceId: number
@@ -228,6 +230,7 @@ function MainPanel({
   onDelete: (id: number) => void
   /** When set, this panel is a toggled-open complement (not the main resource) — show a collapse control. */
   onHide?: () => void
+  onElementAdded?: (el: ElementWithContent) => void
 }) {
   const [editing, setEditing] = useState(false)
   const [type, setType] = useState(element.type)
@@ -391,6 +394,13 @@ function MainPanel({
           {element.isResource
             ? <TranscriptBlock transcript={element.transcript} resourceId={element.resourceId} inline />
             : <TranscriptBlock transcript={element.transcript} elementId={element.id} inline />}
+          {element.transcript && (
+            <ExplainTranscript
+              transcript={element.transcript}
+              resourceId={resourceId}
+              onSaved={(el) => onElementAdded?.({ ...el, extractedHtml: null })}
+            />
+          )}
         </div>
       )}
     </div>
@@ -677,6 +687,10 @@ export function ResourceWorkspace({ resourceId, initialElements, sidebarFooter }
     setAdding(false)
   }
 
+  function handleElementAdded(el: ElementWithContent) {
+    setElements(prev => [...prev, el])
+  }
+
   return (
     <div className="resource-detail-layout">
       {/* Main: primary resource, plus any expanded complements stacked below */}
@@ -689,6 +703,7 @@ export function ResourceWorkspace({ resourceId, initialElements, sidebarFooter }
               resourceId={resourceId}
               onUpdate={handleUpdate}
               onDelete={handleDelete}
+              onElementAdded={handleElementAdded}
             />
             {expanded.map(el => (
               <div key={el.id} style={{ marginTop: '32px' }}>
@@ -699,6 +714,7 @@ export function ResourceWorkspace({ resourceId, initialElements, sidebarFooter }
                   onUpdate={handleUpdate}
                   onDelete={handleDelete}
                   onHide={() => toggleExpanded(el.id)}
+                  onElementAdded={handleElementAdded}
                 />
               </div>
             ))}

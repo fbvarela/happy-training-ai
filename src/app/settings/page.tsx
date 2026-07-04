@@ -1,11 +1,13 @@
 import { TopBar } from '@/components/layout/TopBar'
+import { PromptEditor } from '@/components/settings/PromptEditor'
+import { EXPLAIN_TRANSCRIPT_PROMPT_KEY, DEFAULT_EXPLAIN_TRANSCRIPT_PROMPT } from '@/lib/ai/explainTranscriptPrompt'
 
 export default function SettingsPage() {
   return (
     <div>
       <TopBar title="Settings" description="Configure API keys and preferences" />
 
-      <div style={{ maxWidth: '520px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+      <div style={{ maxWidth: '640px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
         <div className="hf-card">
           <h2 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '16px', color: 'var(--bark)' }}>AI API Keys</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
@@ -20,6 +22,16 @@ export default function SettingsPage() {
               <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>Used for semantic search and topic synthesis.</p>
             </div>
           </div>
+        </div>
+
+        <div className="hf-card">
+          <h2 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '16px', color: 'var(--bark)' }}>AI Prompts</h2>
+          <PromptEditor
+            settingKey={EXPLAIN_TRANSCRIPT_PROMPT_KEY}
+            label="Transcript explanation prompt"
+            description="System prompt used when generating an AI explanation from a resource's transcript."
+            defaultPrompt={DEFAULT_EXPLAIN_TRANSCRIPT_PROMPT}
+          />
         </div>
 
         <div className="hf-card">

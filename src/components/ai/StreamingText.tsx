@@ -37,7 +37,12 @@ export function StreamingText({ text, className }: StreamingTextProps) {
       return
     }
 
-    if (line.startsWith('**') && line.endsWith('**')) {
+    const heading = line.match(/^(#{1,4})\s+(.*)/)
+    if (heading) {
+      const level = heading[1].length
+      const fontSize = level === 1 ? '1.15rem' : level === 2 ? '1.05rem' : '0.95rem'
+      blocks.push(<p key={i} className="font-semibold" style={{ fontSize, marginTop: '14px', marginBottom: '4px' }}>{heading[2]}</p>)
+    } else if (line.startsWith('**') && line.endsWith('**')) {
       blocks.push(<p key={i} className="font-semibold mt-3 mb-1">{line.slice(2, -2)}</p>)
     } else if (/^\*\*.*\*\*/.test(line)) {
       blocks.push(
