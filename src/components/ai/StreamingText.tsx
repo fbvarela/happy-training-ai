@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, type ReactNode } from 'react'
+import { CodeView } from '@/components/snippets/CodeView'
 
 interface StreamingTextProps {
   text: string
@@ -15,30 +16,46 @@ export function StreamingText({ text, className }: StreamingTextProps) {
   }, [text])
 
   const lines = text.split('\n')
+  const blocks: ReactNode[] = []
+  let codeLines: string[] | null = null
+  let codeLang = 'text'
 
-  return (
-    <div ref={ref} className={className}>
-      {lines.map((line, i) => {
-        if (line.startsWith('**') && line.endsWith('**')) {
-          return <p key={i} className="font-semibold mt-3 mb-1">{line.slice(2, -2)}</p>
-        }
-        if (/^\*\*.*\*\*/.test(line)) {
-          return (
-            <p key={i} className="mt-3 mb-1">
-              <span className="font-semibold">{line.match(/\*\*(.*?)\*\*/)?.[1]}</span>
-              {line.replace(/\*\*(.*?)\*\*/, '')}
-            </p>
-          )
-        }
-        if (line.startsWith('- ') || line.startsWith('• ')) {
-          return <li key={i} className="ml-4 text-sm">{line.slice(2)}</li>
-        }
-        if (/^\d+\.\s/.test(line)) {
-          return <p key={i} className="text-sm mt-2">{line}</p>
-        }
-        if (line.trim() === '') return <br key={i} />
-        return <p key={i} className="text-sm leading-relaxed">{line}</p>
-      })}
-    </div>
-  )
+  lines.forEach((line, i) => {
+    const fence = line.match(/^```(\w*)/)
+    if (fence) {
+      if (codeLines === null) {
+        codeLines = []
+        codeLang = fence[1] || 'text'
+      } else {
+        blocks.push(<CodeView key={i} code={codeLines.join('\n')} language={codeLang} />)
+        codeLines = null
+      }
+      return
+    }
+    if (codeLines !== null) {
+      codeLines.push(line)
+      return
+    }
+
+    if (line.startsWith('**') && line.endsWith('**')) {
+      blocks.push(<p key={i} className="font-semibold mt-3 mb-1">{line.slice(2, -2)}</p>)
+    } else if (/^\*\*.*\*\*/.test(line)) {
+      blocks.push(
+        <p key={i} className="mt-3 mb-1" style={{ textAlign: 'justify' }}>
+          <span className="font-semibold">{line.match(/\*\*(.*?)\*\*/)?.[1]}</span>
+          {line.replace(/\*\*(.*?)\*\*/, '')}
+        </p>
+      )
+    } else if (line.startsWith('- ') || line.startsWith('• ')) {
+      blocks.push(<li key={i} className="ml-4 text-sm" style={{ textAlign: 'justify' }}>{line.slice(2)}</li>)
+    } else if (/^\d+\.\s/.test(line)) {
+      blocks.push(<p key={i} className="text-sm mt-2" style={{ textAlign: 'justify' }}>{line}</p>)
+    } else if (line.trim() === '') {
+      blocks.push(<br key={i} />)
+    } else {
+      blocks.push(<p key={i} className="text-sm leading-relaxed" style={{ textAlign: 'justify', hyphens: 'auto' }}>{line}</p>)
+    }
+  })
+
+  return <div ref={ref} className={className}>{blocks}</div>
 }

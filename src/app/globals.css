@@ -577,6 +577,7 @@
     margin: 1.2em 0;
     color: var(--text-muted);
     font-style: italic;
+    text-align: justify;
   }
 
   .reader-body pre, .reader-body code {
@@ -606,7 +607,7 @@
     margin: 0 0 1.2em;
   }
 
-  .reader-body li { margin-bottom: 0.4em; }
+  .reader-body li { margin-bottom: 0.4em; text-align: justify; }
 
   .reader-transcript-section {
     margin-top: 32px;
