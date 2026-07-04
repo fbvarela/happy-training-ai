@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState, type ReactNode } from 'react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import {
   Plus, Trash2, Pencil, Check, X,
   Video, FileText, Newspaper, Paperclip, Image as ImageIcon, Code2,
@@ -392,8 +392,8 @@ function MainPanel({
             </div>
           )}
           {element.isResource
-            ? <TranscriptBlock transcript={element.transcript} resourceId={element.resourceId} inline />
-            : <TranscriptBlock transcript={element.transcript} elementId={element.id} inline />}
+            ? <TranscriptBlock transcript={element.transcript} resourceId={element.resourceId} inline onSaved={(t) => onUpdate({ ...element, transcript: t })} />
+            : <TranscriptBlock transcript={element.transcript} elementId={element.id} inline onSaved={(t) => onUpdate({ ...element, transcript: t })} />}
           {element.transcript && (
             <ExplainTranscript
               transcript={element.transcript}
@@ -661,6 +661,13 @@ export function ResourceWorkspace({ resourceId, initialElements, sidebarFooter }
   const [elements, setElements] = useState<ElementWithContent[]>(initialElements)
   const [expandedIds, setExpandedIds] = useState<number[]>([])
   const [adding, setAdding] = useState(false)
+
+  // router.refresh() (e.g. after transcribing) sends a fresh `initialElements`
+  // prop with a new array identity — resync local state so those updates
+  // (like a newly-populated transcript) actually show up without a full reload.
+  useEffect(() => {
+    setElements(initialElements)
+  }, [initialElements])
 
   // The main resource always sits first; everything else is a complement
   // shown in the sidebar. Selecting a complement adds it below the main

@@ -10,6 +10,7 @@ interface Props {
   resourceId?: number
   elementId?: number
   inline?: boolean
+  onSaved?: (transcript: string) => void
 }
 
 const ALLOWED_TAGS = ['p', 'br', 'div', 'h3', 'strong', 'b', 'em', 'i', 'span']
@@ -43,7 +44,7 @@ function sanitize(html: string) {
   return DOMPurify.sanitize(html, { ALLOWED_TAGS, ALLOWED_ATTR })
 }
 
-export function TranscriptBlock({ transcript: initial, resourceId, elementId, inline }: Props) {
+export function TranscriptBlock({ transcript: initial, resourceId, elementId, inline, onSaved }: Props) {
   const [transcript, setTranscript] = useState(initial ?? '')
   const [collapsed, setCollapsed] = useState(!!initial)
   const [editing, setEditing] = useState(!initial)
@@ -107,6 +108,7 @@ export function TranscriptBlock({ transcript: initial, resourceId, elementId, in
       })
       if (!res.ok) throw new Error()
       setTranscript(html)
+      onSaved?.(html)
       setEditing(false)
       toast.success('Transcript saved')
     } catch {
@@ -126,6 +128,7 @@ export function TranscriptBlock({ transcript: initial, resourceId, elementId, in
       const data = raw ? JSON.parse(raw) : null
       if (!res.ok || !data) throw new Error(data?.error ?? 'Rewrite failed')
       setTranscript(data.transcript)
+      onSaved?.(data.transcript)
       toast.success('Transcript rewritten!', { id: toastId })
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Rewrite failed', { id: toastId })
