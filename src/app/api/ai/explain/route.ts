@@ -9,7 +9,7 @@ export async function POST(req: NextRequest) {
   const groq = createGroq({ apiKey: process.env.GROQ_API_KEY })
 
   const result = streamText({
-    model: groq('llama-3.3-70b-versatile'),
+    model: groq('llama-3.1-8b-instant'),
     system: `You are a senior software engineer. Explain the provided code clearly and concisely.
 Structure your response as:
 1. **What it does** — one sentence overview

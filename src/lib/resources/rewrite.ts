@@ -42,7 +42,7 @@ function splitIntoChunks(text: string): string[] {
 async function rewriteChunk(chunk: string): Promise<string> {
   const groq = createGroq({ apiKey: process.env.GROQ_API_KEY })
   const { text } = await generateText({
-    model: groq('llama-3.3-70b-versatile'),
+    model: groq('llama-3.1-8b-instant'),
     system: SYSTEM_PROMPT,
     prompt: chunk,
   })

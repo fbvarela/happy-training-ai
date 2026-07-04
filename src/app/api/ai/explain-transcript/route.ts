@@ -19,7 +19,7 @@ export async function POST(req: NextRequest) {
   const groq = createGroq({ apiKey: process.env.GROQ_API_KEY })
 
   const result = streamText({
-    model: groq('llama-3.3-70b-versatile'),
+    model: groq('llama-3.1-8b-instant'),
     system,
     prompt: `Transcript:\n\n${clean}`,
   })
