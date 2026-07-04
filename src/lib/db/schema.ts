@@ -48,6 +48,12 @@ export const snippets = pgTable("snippets", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 })
 
+export const settings = pgTable('settings', {
+  key: text('key').primaryKey(),
+  value: text('value').notNull(),
+  updatedAt: timestamp('updated_at').notNull().defaultNow(),
+})
+
 export const resourceElements = pgTable('resource_elements', {
   id: serial('id').primaryKey(),
   resourceId: integer('resource_id').notNull().references(() => resources.id),
@@ -73,3 +79,4 @@ export type Snippet = typeof snippets.$inferSelect
 export type NewSnippet = typeof snippets.$inferInsert
 export type ResourceTopic = typeof resourceTopics.$inferSelect
 export type NewResourceTopic = typeof resourceTopics.$inferInsert
+export type Setting = typeof settings.$inferSelect
