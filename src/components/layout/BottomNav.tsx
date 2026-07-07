@@ -1,8 +1,9 @@
 'use client'
 
 import Link from 'next/link'
+import type { ReactNode } from 'react'
 import { usePathname } from 'next/navigation'
-import { BookOpen, Brain, Code, GraduationCap, Home, LayoutList } from 'lucide-react'
+import { BookOpen, Brain, Code, GitBranch, GraduationCap, Home, LayoutList } from 'lucide-react'
 import { ThemeToggleMini } from './ThemeToggle'
 
 const navItems = [
@@ -13,8 +14,14 @@ const navItems = [
   { href: '/ai', label: 'AI', icon: Brain },
 ]
 
-export function BottomNav() {
+interface BottomNavProps {
+  user: { login: string; image?: string } | null
+  authSlot: ReactNode
+}
+
+export function BottomNav({ user, authSlot }: BottomNavProps) {
   const pathname = usePathname()
+  const items = user ? [...navItems, { href: '/repos', label: 'Repos', icon: GitBranch }] : navItems
 
   return (
     <>
@@ -23,11 +30,14 @@ export function BottomNav() {
           <GraduationCap size={20} />
           Happy Training
         </Link>
-        <ThemeToggleMini />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {authSlot}
+          <ThemeToggleMini />
+        </div>
       </nav>
 
       <nav className="bottom-nav">
-        {navItems.map(({ href, label, icon: Icon }) => {
+        {items.map(({ href, label, icon: Icon }) => {
           const active = href === '/' ? pathname === '/' : pathname.startsWith(href)
           return (
             <Link key={href} href={href} className={`bottom-nav-item${active ? ' active' : ''}`}>

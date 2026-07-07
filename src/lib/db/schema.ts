@@ -1,4 +1,4 @@
-import { AnyPgColumn, integer, pgTable, primaryKey, serial, text, timestamp } from "drizzle-orm/pg-core"
+import { AnyPgColumn, boolean, integer, jsonb, pgTable, primaryKey, serial, text, timestamp } from "drizzle-orm/pg-core"
 
 export const topics = pgTable('topics', {
   id: serial('id').primaryKey(),
@@ -69,6 +69,49 @@ export const resourceElements = pgTable('resource_elements', {
   createdAt: timestamp('created_at').notNull().defaultNow(),
 })
 
+export const users = pgTable('users', {
+  id: serial('id').primaryKey(),
+  githubId: text('github_id').notNull().unique(),
+  login: text('login').notNull(),
+  avatarUrl: text('avatar_url'),
+  accessToken: text('access_token').notNull(), // encrypted at rest, see src/lib/auth/tokenCrypto.ts
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+})
+
+export const connectedRepos = pgTable('connected_repos', {
+  id: serial('id').primaryKey(),
+  userId: integer('user_id').notNull().references(() => users.id),
+  githubRepoId: text('github_repo_id').notNull(),
+  owner: text('owner').notNull(),
+  name: text('name').notNull(),
+  fullName: text('full_name').notNull(),
+  defaultBranch: text('default_branch').notNull(),
+  private: boolean('private').notNull().default(false),
+  lastSyncedAt: timestamp('last_synced_at'),
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+})
+
+export const repoFiles = pgTable('repo_files', {
+  id: serial('id').primaryKey(),
+  repoId: integer('repo_id').notNull().references(() => connectedRepos.id),
+  path: text('path').notNull(),
+  sha: text('sha').notNull(),
+  size: integer('size').notNull().default(0),
+  language: text('language'),
+  content: text('content'),
+  fetchedAt: timestamp('fetched_at').notNull().defaultNow(),
+  // `search_vector` tsvector column + GIN index are created via raw DDL
+  // (see scripts run for task #16) — not represented here since drizzle-orm
+  // 0.45's pg-core has no generated-column helper; queried via sql`` escape hatch.
+})
+
+export const repoSuggestions = pgTable('repo_suggestions', {
+  id: serial('id').primaryKey(),
+  repoId: integer('repo_id').notNull().references(() => connectedRepos.id),
+  suggestions: jsonb('suggestions').notNull(), // array of { title, why, addedAsResourceId? }
+  createdAt: timestamp('created_at').notNull().defaultNow(),
+})
+
 export type Topic = typeof topics.$inferSelect
 export type NewTopic = typeof topics.$inferInsert
 export type Resource = typeof resources.$inferSelect
@@ -80,3 +123,11 @@ export type NewSnippet = typeof snippets.$inferInsert
 export type ResourceTopic = typeof resourceTopics.$inferSelect
 export type NewResourceTopic = typeof resourceTopics.$inferInsert
 export type Setting = typeof settings.$inferSelect
+export type User = typeof users.$inferSelect
+export type NewUser = typeof users.$inferInsert
+export type ConnectedRepo = typeof connectedRepos.$inferSelect
+export type NewConnectedRepo = typeof connectedRepos.$inferInsert
+export type RepoFile = typeof repoFiles.$inferSelect
+export type NewRepoFile = typeof repoFiles.$inferInsert
+export type RepoSuggestion = typeof repoSuggestions.$inferSelect
+export type NewRepoSuggestion = typeof repoSuggestions.$inferInsert

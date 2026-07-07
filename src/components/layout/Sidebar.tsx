@@ -1,8 +1,9 @@
 'use client'
 
 import Link from 'next/link'
+import type { ReactNode } from 'react'
 import { usePathname } from 'next/navigation'
-import { BookOpen, Brain, Code, GraduationCap, Home, LayoutList } from 'lucide-react'
+import { BookOpen, Brain, Code, GitBranch, GraduationCap, Home, LayoutList } from 'lucide-react'
 import { ThemeToggle } from './ThemeToggle'
 
 const navItems = [
@@ -13,8 +14,14 @@ const navItems = [
   { href: '/ai', label: 'AI', icon: Brain },
 ]
 
-export function Sidebar() {
+interface SidebarProps {
+  user: { login: string; image?: string } | null
+  authSlot: ReactNode
+}
+
+export function Sidebar({ user, authSlot }: SidebarProps) {
   const pathname = usePathname()
+  const items = user ? [...navItems, { href: '/repos', label: 'Repos', icon: GitBranch }] : navItems
 
   return (
     <aside className="sidebar-nav">
@@ -24,7 +31,7 @@ export function Sidebar() {
       </Link>
 
       <nav className="sidebar-items">
-        {navItems.map(({ href, label, icon: Icon }) => {
+        {items.map(({ href, label, icon: Icon }) => {
           const active = href === '/' ? pathname === '/' : pathname.startsWith(href)
           return (
             <Link key={href} href={href} className={`sideitem${active ? ' active' : ''}`}>
@@ -35,7 +42,8 @@ export function Sidebar() {
         })}
       </nav>
 
-      <div className="sidebar-footer" style={{ display: 'flex', justifyContent: 'center' }}>
+      <div className="sidebar-footer" style={{ display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center' }}>
+        {authSlot}
         <ThemeToggle />
       </div>
     </aside>

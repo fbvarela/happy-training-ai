@@ -2,6 +2,8 @@ import type { Metadata } from 'next'
 import { Toaster } from '@/components/ui/sonner'
 import { Sidebar } from '@/components/layout/Sidebar'
 import { BottomNav } from '@/components/layout/BottomNav'
+import { getCurrentUser } from '@/lib/auth/session'
+import { AuthButton } from '@/components/layout/AuthButton'
 import './globals.css'
 
 const themeScript = `(function(){try{var t=localStorage.getItem('hf-theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme: dark)').matches))document.documentElement.classList.add('dark')}catch(e){}})()`
@@ -11,11 +13,13 @@ export const metadata: Metadata = {
   description: 'Personal training knowledge base — videos, PDFs, snippets, and AI suggestions',
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode
 }>) {
+  const user = await getCurrentUser()
+
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
@@ -29,11 +33,11 @@ export default function RootLayout({
         />
       </head>
       <body>
-        <Sidebar />
+        <Sidebar user={user} authSlot={<AuthButton user={user} />} />
         <div className="app">
           <main className="page">{children}</main>
         </div>
-        <BottomNav />
+        <BottomNav user={user} authSlot={<AuthButton user={user} compact />} />
         <Toaster richColors />
       </body>
     </html>
