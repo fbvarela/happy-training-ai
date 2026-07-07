@@ -4,7 +4,7 @@ import { resourceElements } from '@/lib/db/schema'
 import { eq } from 'drizzle-orm'
 import { rewriteTranscript } from '@/lib/resources/rewrite'
 
-export const maxDuration = 120
+export const maxDuration = 300
 
 export async function POST(_req: NextRequest, { params }: { params: Promise<{ elementId: string }> }) {
   const { elementId } = await params

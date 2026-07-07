@@ -45,6 +45,7 @@ async function rewriteChunk(chunk: string): Promise<string> {
     model: groq('llama-3.1-8b-instant'),
     system: SYSTEM_PROMPT,
     prompt: chunk,
+    maxRetries: 5,
   })
   if (text.length < chunk.length * SUMMARIZATION_GUARD_RATIO) {
     console.warn(`[rewrite] summarization guard tripped (${text.length}/${chunk.length}) — keeping original`)
@@ -59,6 +60,12 @@ export async function rewriteTranscript(rawTranscript: string): Promise<string> 
     return rewriteChunk(text)
   }
   const chunks = splitIntoChunks(text)
-  const parts = await Promise.all(chunks.map(chunk => rewriteChunk(chunk)))
+  // llama-3.1-8b-instant has a tight tokens-per-minute quota — running chunks
+  // concurrently blows through it immediately (each chunk is a few thousand
+  // tokens), so process them one at a time instead of Promise.all.
+  const parts: string[] = []
+  for (const chunk of chunks) {
+    parts.push(await rewriteChunk(chunk))
+  }
   return parts.join('\n\n')
 }
