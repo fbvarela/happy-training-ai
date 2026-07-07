@@ -2,7 +2,7 @@ import { and, desc, eq, inArray, isNull, like, or } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { resources, resourceTopics, topics, type NewResource, type Resource, type Topic } from '@/lib/db/schema'
 
-type ResourceWithTopics = Resource & { topics: Topic[] }
+export type ResourceWithTopics = Resource & { topics: Topic[] }
 
 async function attachTopics<T extends Resource>(rows: T[]): Promise<(T & { topics: Topic[] })[]> {
   if (rows.length === 0) return []

@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
     .join('\n')
 
   const result = streamText({
-    model: cohere('command-r-plus'),
+    model: cohere('command-a-03-2025'),
     system: `You are a learning path advisor. Given a topic and its resources, produce a structured learning map.`,
     prompt: `Topic: ${topicName}
 
