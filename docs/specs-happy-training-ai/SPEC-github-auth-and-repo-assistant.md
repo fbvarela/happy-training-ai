@@ -180,7 +180,7 @@ Relevant files:
 |---|---|---|
 | Repos list | `/repos` | Connect/manage repositories (new, auth-gated) |
 | Repo detail | `/repos/[id]` | Suggestions + Q&A chat for one connected repo (new, auth-gated) |
-| Sign-in | `/api/auth/signin` (Auth.js default) | GitHub OAuth handoff |
+| Sign-in | `/login` (custom, brand-styled) | GitHub OAuth handoff — replaces the unbranded Auth.js default sign-in page |
 | AI page | `/ai` | Gains a "From your code" section (existing route, extended) |
 
 ---
