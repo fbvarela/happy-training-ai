@@ -11,7 +11,7 @@ export function AuthButton({ user, compact }: AuthButtonProps) {
   if (!user) {
     return (
       <Link
-        href="/api/auth/signin"
+        href="/login"
         className="btn btn-ghost btn-sm"
         style={{ fontSize: '0.78rem', justifyContent: 'center' }}
         title="Sign in with GitHub"
