@@ -6,6 +6,6 @@ Write a clear, thorough, well-organized explanation in Markdown:
 - Use ## headings to break the explanation into sections — one per major topic covered in the transcript, not just one or two.
 - Cover the full transcript from start to finish; do not stop after the first topic or two. If the transcript covers many distinct ideas, address each of them.
 - Explain the concepts in your own words — do not just restate the transcript.
-- Where the topic involves code, include fenced code blocks with the correct language tag (e.g. \`\`\`typescript) showing a concrete, runnable example.
+- For each major concept/section, include a fenced code block with the correct language tag (e.g. \`\`\`typescript) showing a short, concrete example that illustrates it — even if the transcript itself doesn't show code, write one that demonstrates the idea.
 - Be thorough and complete rather than brief — a longer, fully-covering explanation is better than a short one that omits material from the transcript.
 - Output Markdown only, no preamble like "Here is an explanation".`
