@@ -4,7 +4,9 @@ import { TopBar } from '@/components/layout/TopBar'
 import { getResources } from '@/lib/resources/queries'
 import { getResourceIcon } from '@/lib/resources/icons'
 import { getTopicIcon } from '@/lib/topics/icons'
+import { getTopics } from '@/lib/topics/queries'
 import { SortSelect } from '@/components/resources/SortSelect'
+import { TopicFilter } from '@/components/resources/TopicFilter'
 import type { ResourceWithTopics } from '@/lib/resources/queries'
 
 function sortResources(resources: ResourceWithTopics[], sort: string): ResourceWithTopics[] {
@@ -28,10 +30,14 @@ function sortResources(resources: ResourceWithTopics[], sort: string): ResourceW
 export default async function ResourcesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ sort?: string }>
+  searchParams: Promise<{ sort?: string; topic?: string }>
 }) {
-  const { sort = 'date-desc' } = await searchParams
-  const resources = sortResources(await getResources(), sort)
+  const { sort = 'date-desc', topic } = await searchParams
+  const topicId = topic ? Number(topic) : undefined
+  const [resources, topics] = await Promise.all([
+    getResources({ topicId }).then((r) => sortResources(r, sort)),
+    getTopics(),
+  ])
 
   return (
     <div>
@@ -53,7 +59,8 @@ export default async function ResourcesPage({
         </div>
       ) : (
         <>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '12px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', gap: '12px' }}>
+            <TopicFilter current={topicId} topics={topics} />
             <SortSelect current={sort} />
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
