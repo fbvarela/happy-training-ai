@@ -5,6 +5,8 @@ import { getResources } from '@/lib/resources/queries'
 import { getResourceIcon } from '@/lib/resources/icons'
 import { getTopicIcon } from '@/lib/topics/icons'
 import { SortSelect } from '@/components/resources/SortSelect'
+import { TopicFilterSelect } from '@/components/resources/TopicFilterSelect'
+import { getTopics } from '@/lib/topics/queries'
 import type { ResourceWithTopics } from '@/lib/resources/queries'
 
 function sortResources(resources: ResourceWithTopics[], sort: string): ResourceWithTopics[] {
@@ -28,10 +30,15 @@ function sortResources(resources: ResourceWithTopics[], sort: string): ResourceW
 export default async function ResourcesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ sort?: string }>
+  searchParams: Promise<{ sort?: string; topic?: string }>
 }) {
-  const { sort = 'date-desc' } = await searchParams
-  const resources = sortResources(await getResources(), sort)
+  const { sort = 'date-desc', topic = '' } = await searchParams
+  const topicId = topic ? Number(topic) : undefined
+  const [resourcesRaw, topicList] = await Promise.all([
+    getResources({ topicId }),
+    getTopics(),
+  ])
+  const resources = sortResources(resourcesRaw, sort)
 
   return (
     <div>
@@ -46,16 +53,29 @@ export default async function ResourcesPage({
         }
       />
 
+      {topicList.length > 0 && (
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', gap: '10px' }}>
+          <TopicFilterSelect topics={topicList} current={topic} />
+          <SortSelect current={sort} />
+        </div>
+      )}
+
       {resources.length === 0 ? (
         <div className="empty-state">
-          <p>No resources yet.</p>
-          <Link href="/resources/new" className="btn btn-ghost btn-sm">Add your first resource</Link>
+          {topicId ? (
+            <>
+              <p>No resources for this topic.</p>
+              <Link href="/resources" className="btn btn-ghost btn-sm">Clear filter</Link>
+            </>
+          ) : (
+            <>
+              <p>No resources yet.</p>
+              <Link href="/resources/new" className="btn btn-ghost btn-sm">Add your first resource</Link>
+            </>
+          )}
         </div>
       ) : (
         <>
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '12px' }}>
-            <SortSelect current={sort} />
-          </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             {resources.map((r) => {
               const TypeIcon = getResourceIcon(r.type)
