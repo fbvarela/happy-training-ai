@@ -1,6 +1,7 @@
 import { generateText } from 'ai'
 import { createGroq } from '@ai-sdk/groq'
 import { fetchCaptions } from './youtubeCaptions'
+import { transcribeWithGemini } from './youtubeGemini'
 
 export interface TranscriptResult {
   formatted: string
@@ -19,8 +20,16 @@ export async function transcribeYouTube(videoUrl: string): Promise<TranscriptRes
   const videoId = extractYouTubeId(videoUrl)
   if (!videoId) throw new Error('Invalid YouTube URL')
 
-  const segments = await fetchCaptions(videoId)
-  const rawTranscript = segments.map((s) => s.text).join(' ')
+  let rawTranscript: string
+  try {
+    const segments = await fetchCaptions(videoId)
+    rawTranscript = segments.map((s) => s.text).join(' ')
+  } catch (err) {
+    console.warn(`[transcribe] Caption fetch failed for ${videoId}, trying Gemini fallback…`, err instanceof Error ? err.message : err)
+    const geminiText = await transcribeWithGemini(videoId)
+    if (!geminiText) throw err
+    rawTranscript = geminiText
+  }
 
   const groq = createGroq({ apiKey: process.env.GROQ_API_KEY })
 
