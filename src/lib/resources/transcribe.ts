@@ -1,6 +1,6 @@
-import { YoutubeTranscript } from 'youtube-transcript'
 import { generateText } from 'ai'
 import { createGroq } from '@ai-sdk/groq'
+import { fetchCaptions } from './youtubeCaptions'
 
 export interface TranscriptResult {
   formatted: string
@@ -19,7 +19,7 @@ export async function transcribeYouTube(videoUrl: string): Promise<TranscriptRes
   const videoId = extractYouTubeId(videoUrl)
   if (!videoId) throw new Error('Invalid YouTube URL')
 
-  const segments = await YoutubeTranscript.fetchTranscript(videoId)
+  const segments = await fetchCaptions(videoId)
   const rawTranscript = segments.map((s) => s.text).join(' ')
 
   const groq = createGroq({ apiKey: process.env.GROQ_API_KEY })
