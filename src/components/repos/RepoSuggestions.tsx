@@ -1,12 +1,17 @@
 'use client'
 
+import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { Sparkles, Loader2, Plus, Check } from 'lucide-react'
 import { toast } from 'sonner'
+import { CodeView } from '@/components/snippets/CodeView'
+import { StreamingText } from '@/components/ai/StreamingText'
 
 interface Suggestion {
   title: string
-  why: string
+  explanation: string
+  language: string
+  code: string
   addedAsResourceId?: number
 }
 
@@ -50,23 +55,55 @@ export function RepoSuggestions({ repoId }: { repoId: number }) {
     }
   }
 
-  async function addAsTopic(suggestion: Suggestion, index: number) {
+  async function addAsResource(suggestion: Suggestion, index: number) {
     setAddingIndex(index)
     try {
-      const res = await fetch('/api/topics', {
+      const resourceRes = await fetch('/api/resources', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: suggestion.title, description: suggestion.why }),
+        body: JSON.stringify({
+          title: suggestion.title,
+          description: suggestion.explanation.slice(0, 200),
+          type: 'article',
+        }),
       })
-      if (!res.ok) throw new Error()
+      if (!resourceRes.ok) throw new Error()
+      const resource = await resourceRes.json()
+
+      const explanationRes = await fetch(`/api/resources/${resource.id}/elements`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'snippet',
+          title: 'Explanation',
+          language: 'markdown',
+          code: suggestion.explanation,
+          order: 0,
+        }),
+      })
+      if (!explanationRes.ok) throw new Error()
+
+      const codeRes = await fetch(`/api/resources/${resource.id}/elements`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          type: 'snippet',
+          title: 'Code Example',
+          language: suggestion.language,
+          code: suggestion.code,
+          order: 1,
+        }),
+      })
+      if (!codeRes.ok) throw new Error()
+
       setRun((prev) => {
         if (!prev) return prev
-        const suggestions = prev.suggestions.map((s, i) => i === index ? { ...s, addedAsResourceId: -1 } : s)
+        const suggestions = prev.suggestions.map((s, i) => i === index ? { ...s, addedAsResourceId: resource.id } : s)
         return { ...prev, suggestions }
       })
-      toast.success(`Added topic: ${suggestion.title}`)
+      toast.success(`Added resource: ${suggestion.title}`)
     } catch {
-      toast.error('Failed to add topic')
+      toast.error('Failed to add resource')
     } finally {
       setAddingIndex(null)
     }
@@ -92,22 +129,31 @@ export function RepoSuggestions({ repoId }: { repoId: number }) {
           No suggestions yet. Click &quot;Suggest resources&quot; to analyze this repo&apos;s code and dependencies.
         </p>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           {run.suggestions.map((s, i) => (
-            <div key={i} style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', padding: '10px 12px', background: 'var(--cream)', borderRadius: '8px' }}>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontWeight: 600, fontSize: '0.88rem', color: 'var(--bark)' }}>{s.title}</div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '2px' }}>{s.why}</div>
+            <div key={i} style={{ padding: '14px 16px', background: 'var(--cream)', borderRadius: '8px' }}>
+              <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start', marginBottom: '10px' }}>
+                <div style={{ flex: 1, minWidth: 0, fontWeight: 600, fontSize: '0.9rem', color: 'var(--bark)' }}>{s.title}</div>
+                {s.addedAsResourceId ? (
+                  <Link href={`/resources/${s.addedAsResourceId}`} className="btn btn-ghost btn-sm" style={{ fontSize: '0.75rem', flexShrink: 0 }}>
+                    <Check size={13} /> View resource
+                  </Link>
+                ) : (
+                  <button
+                    onClick={() => addAsResource(s, i)}
+                    disabled={addingIndex === i}
+                    className="btn btn-ghost btn-sm"
+                    style={{ fontSize: '0.75rem', flexShrink: 0 }}
+                  >
+                    {addingIndex === i ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Plus size={13} />}
+                    Add as resource
+                  </button>
+                )}
               </div>
-              <button
-                onClick={() => addAsTopic(s, i)}
-                disabled={!!s.addedAsResourceId || addingIndex === i}
-                className="btn btn-ghost btn-sm"
-                style={{ fontSize: '0.75rem', flexShrink: 0 }}
-              >
-                {s.addedAsResourceId ? <Check size={13} /> : addingIndex === i ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Plus size={13} />}
-                {s.addedAsResourceId ? 'Added' : 'Add as topic'}
-              </button>
+              <StreamingText text={s.explanation} className="text-sm" />
+              <div style={{ marginTop: '10px' }}>
+                <CodeView code={s.code} language={s.language} />
+              </div>
             </div>
           ))}
         </div>
