@@ -108,7 +108,7 @@ export const repoFiles = pgTable('repo_files', {
 export const repoSuggestions = pgTable('repo_suggestions', {
   id: serial('id').primaryKey(),
   repoId: integer('repo_id').notNull().references(() => connectedRepos.id),
-  suggestions: jsonb('suggestions').notNull(), // array of { title, why, addedAsResourceId? }
+  suggestions: jsonb('suggestions').notNull(), // array of { title, explanation, language, code, addedAsResourceId? }
   createdAt: timestamp('created_at').notNull().defaultNow(),
 })
 

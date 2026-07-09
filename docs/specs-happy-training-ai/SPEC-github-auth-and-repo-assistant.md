@@ -71,8 +71,8 @@ Not applicable — single-user personal app (see §3). No Free/Premium split; sc
   - Root `README.md` if present
   - File tree (paths only, depth-limited) to show structure without full contents
   - Up to N largest/most-central source files by heuristic (entry points, most-imported files) — content included only up to a token budget, not the whole repo
-- Sent to Groq (`llama-3.1-8b-instant`, matching the rest of the app post-quota-fix — see `SPEC.md` §2.7) with a system prompt asking for 3–7 concrete topic/resource suggestions with a one-line "why this repo suggests it" justification each (e.g. *"Uses Drizzle's `relations()` extensively but no resource covers query builder joins yet"*).
-- Output renders as a list of suggestion cards, each with an "Add as topic" / "Add as resource stub" action that calls the existing `POST /api/topics` or `POST /api/resources` routes — reuses the app's real content model instead of inventing a new one, same principle as `SPEC-ai-topic-content-generation.md` §4.3's "save as resource" pattern.
+- Sent to Groq (`llama-3.1-8b-instant`, matching the rest of the app post-quota-fix — see `SPEC.md` §2.7) with a system prompt asking for 3–7 concrete topics the repo suggests the author hasn't formally learned. Each suggestion is a **whole mini-resource**, not a bare pointer: a title, a short explanation of the concept and why the code suggests it's needed, and a minimal runnable code example tagged with its language (e.g. *title "Drizzle relational queries", explanation citing `relations()` usage with no covering resource yet, plus a short `db.query.x.findMany({ with: {...} })` example*).
+- Output renders as a list of suggestion cards (explanation rendered via `StreamingText`, code example via `CodeView` for syntax highlighting), each with an "Add as resource" action that calls `POST /api/resources` followed by two `POST /api/resources/[id]/elements` calls (a markdown "Explanation" snippet element + a "Code Example" snippet element in the suggested language) — reuses the app's real content model (resource + elements) instead of inventing a new one, same principle as `SPEC-ai-topic-content-generation.md` §4.3's "save as resource" pattern.
 - No embeddings, no code chunk storage required for this feature alone — it's a single bounded-context prompt per suggestion run, on demand.
 
 ### 5.4 Code Q&A
@@ -123,7 +123,7 @@ repo_chunks                         ← v2 only (§5.4, §10 Phase 4), not built
 
 repo_suggestions                    ← history of suggestion runs (§5.3)
   id, repo_id (FK → connected_repos),
-  suggestions (jsonb — array of {title, why, addedAsResourceId (nullable)}),
+  suggestions (jsonb — array of {title, explanation, language, code, addedAsResourceId (nullable)}),
   created_at
 ```
 
@@ -145,9 +145,11 @@ No changes to `topics`, `resources`, `resource_elements`, or `snippets` — sugg
 System: You are a technical mentor reviewing a codebase to suggest what its
 author should study next. Given a dependency list, file tree, and excerpts
 from key files, suggest 3-7 specific topics they likely need but probably
-haven't formally learned, each with a one-sentence justification citing
-what in the code suggests it. Be concrete — name the library/pattern, not
-"learn more about databases". Output as a JSON array of {title, why}.
+haven't formally learned. For each, produce a full learning resource: a
+title, an explanation of the concept and why the code suggests it's
+needed, and a minimal runnable code example tagged with its language. Be
+concrete — name the library/pattern, not "learn more about databases".
+Output as a JSON array of {title, explanation, language, code}.
 
 Prompt: Repo: {owner}/{name}
 Dependencies: {parsed package.json/requirements.txt/go.mod}
@@ -233,7 +235,7 @@ Relevant files:
 
 - [ ] `repo_suggestions` table
 - [ ] `POST /api/repo-ai/suggest` route + prompt (§7)
-- [ ] Suggestion cards UI with "Add as topic"/"Add as resource stub" actions wired to existing `/api/topics`, `/api/resources`
+- [ ] Suggestion cards UI (explanation + code example) with an "Add as resource" action wired to existing `/api/resources`, `/api/resources/[id]/elements`
 - [ ] "From your code" section on `/ai`
 
 ### Phase 4 — Code Q&A (v1, keyword retrieval)
