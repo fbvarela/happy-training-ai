@@ -188,7 +188,7 @@ A resource is a **learning unit** — its `resource_elements` hold the actual me
 | Snippet Detail | `/snippets/[id]` | Syntax-highlighted view + AI explain |
 | New Snippet | `/snippets/new` | Editor + language picker |
 | AI Suggestions | `/ai` | Topic synthesis, related resource discovery |
-| Settings | `/settings` | API keys configuration |
+| Settings | `/settings` | API keys reference + editable AI prompts (code explain, transcript explain/rewrite, summarize, topic synthesis) |
 
 ---
 
