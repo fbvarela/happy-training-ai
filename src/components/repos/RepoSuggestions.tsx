@@ -38,10 +38,13 @@ export function RepoSuggestions({ repoId }: { repoId: number }) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ repoId }),
       })
-      if (!res.ok) throw new Error()
+      if (!res.ok) {
+        const body = await res.json().catch(() => null)
+        throw new Error(body?.error ?? `Request failed (${res.status})`)
+      }
       setRun(await res.json())
-    } catch {
-      toast.error('Failed to generate suggestions')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to generate suggestions')
     } finally {
       setLoading(false)
     }
