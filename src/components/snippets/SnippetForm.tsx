@@ -50,7 +50,7 @@ export function SnippetForm({ snippet }: SnippetFormProps) {
 
   return (
     <form onSubmit={handleSubmit} style={{ maxWidth: '720px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 180px', gap: '14px' }}>
+      <div className="grid grid-cols-[1fr_180px] gap-[14px]">
         <div className="field" style={{ margin: 0 }}>
           <label className="input-label" htmlFor="title">Title *</label>
           <input
