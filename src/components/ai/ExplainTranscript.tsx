@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Loader2, Sparkles, Save, Check, RotateCcw } from 'lucide-react'
+import { Loader2, Sparkles, Save, Check, RotateCcw, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { StreamingText } from './StreamingText'
 import type { ResourceElement } from '@/lib/db/schema'
@@ -66,11 +66,19 @@ export function ExplainTranscript({ transcript, resourceId, onSaved }: ExplainTr
       onSaved?.(element)
       setSaved(true)
       toast.success('Saved as snippet')
+      // The explanation now lives permanently as a saved element in the
+      // complements list — collapse this streaming panel back to the
+      // trigger button instead of leaving a duplicate copy stuck open.
+      setTriggered(false)
     } catch {
       toast.error('Failed to save explanation')
     } finally {
       setSaving(false)
     }
+  }
+
+  function hide() {
+    setTriggered(false)
   }
 
   return (
@@ -102,6 +110,11 @@ export function ExplainTranscript({ transcript, resourceId, onSaved }: ExplainTr
               >
                 {saved ? <Check size={13} /> : saving ? <Loader2 size={13} style={{ animation: 'spin 1s linear infinite' }} /> : <Save size={13} />}
                 {saved ? 'Saved' : saving ? 'Saving…' : 'Save as snippet'}
+              </button>
+            )}
+            {!loading && (
+              <button onClick={hide} className="btn btn-ghost btn-sm" style={{ fontSize: '0.75rem', padding: '4px' }} aria-label="Hide AI explanation">
+                <X size={13} />
               </button>
             )}
           </div>
