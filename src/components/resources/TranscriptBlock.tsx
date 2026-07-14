@@ -57,6 +57,14 @@ export function TranscriptBlock({ transcript: initial, resourceId, elementId, in
   const rewriteEndpoint = elementId ? `/api/elements/${elementId}/rewrite` : `/api/resources/${resourceId}/rewrite`
 
   useEffect(() => {
+    setTranscript(initial ?? '')
+    if (initial) {
+      setEditing(false)
+      setCollapsed(false)
+    }
+  }, [initial])
+
+  useEffect(() => {
     if (editing && editorRef.current) {
       const source = transcript
       editorRef.current.innerHTML = HTML_TAG_RE.test(source) ? sanitize(source) : plainToHtml(source)
