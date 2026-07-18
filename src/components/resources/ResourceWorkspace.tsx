@@ -11,6 +11,7 @@ import type { ResourceElement } from '@/lib/db/schema'
 import { TranscriptBlock } from './TranscriptBlock'
 import { TranscribeButton } from './TranscribeButton'
 import { ExplainTranscript } from '../ai/ExplainTranscript'
+import { AskAboutContent } from '../ai/AskAboutContent'
 import { CodeEditor } from '../snippets/CodeEditor'
 import { CodeView } from '../snippets/CodeView'
 import { MarkdownPreview } from '../markdown/MarkdownPreview'
@@ -381,6 +382,16 @@ function MainPanel({
       {/* Content — hidden while editing a snippet, since the edit form above already has its own Source/Preview toggle */}
       {!(editing && element.type === 'snippet') && <InlineContent element={element} />}
 
+      {!editing && element.type === 'snippet' && element.code && (
+        <AskAboutContent
+          content={element.code}
+          contentLabel="this snippet"
+          resourceId={resourceId}
+          defaultLanguage={element.language ?? 'typescript'}
+          onSaved={(el) => onElementAdded?.({ ...el, extractedHtml: null })}
+        />
+      )}
+
       {/* Transcribe + transcript */}
       {element.type !== 'image' && element.type !== 'snippet' && (
         <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -395,11 +406,19 @@ function MainPanel({
             ? <TranscriptBlock transcript={element.transcript} resourceId={element.resourceId} inline onSaved={(t) => onUpdate({ ...element, transcript: t })} />
             : <TranscriptBlock transcript={element.transcript} elementId={element.id} inline onSaved={(t) => onUpdate({ ...element, transcript: t })} />}
           {element.transcript && (
-            <ExplainTranscript
-              transcript={element.transcript}
-              resourceId={resourceId}
-              onSaved={(el) => onElementAdded?.({ ...el, extractedHtml: null })}
-            />
+            <>
+              <ExplainTranscript
+                transcript={element.transcript}
+                resourceId={resourceId}
+                onSaved={(el) => onElementAdded?.({ ...el, extractedHtml: null })}
+              />
+              <AskAboutContent
+                content={element.transcript}
+                contentLabel="this transcript"
+                resourceId={resourceId}
+                onSaved={(el) => onElementAdded?.({ ...el, extractedHtml: null })}
+              />
+            </>
           )}
         </div>
       )}
