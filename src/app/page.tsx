@@ -5,19 +5,21 @@ import { getTopicIcon } from '@/lib/topics/icons'
 
 import { db } from '@/lib/db'
 import { resources, snippets, topics } from '@/lib/db/schema'
-import { isNull, desc } from 'drizzle-orm'
+import { isNull, desc, count } from 'drizzle-orm'
 
 export default async function HomePage() {
-  const [topicList, recentResources, snippetList] = await Promise.all([
+  const [topicList, recentResources, [{ value: topicCount }], [{ value: resourceCount }], [{ value: snippetCount }]] = await Promise.all([
     db.select().from(topics).orderBy(desc(topics.createdAt)).limit(6),
     db.select().from(resources).where(isNull(resources.deletedAt)).orderBy(desc(resources.createdAt)).limit(5),
-    db.select().from(snippets).orderBy(desc(snippets.createdAt)).limit(5),
+    db.select({ value: count() }).from(topics),
+    db.select({ value: count() }).from(resources).where(isNull(resources.deletedAt)),
+    db.select({ value: count() }).from(snippets),
   ])
 
   const stats = [
-    { label: 'Topics', value: topicList.length, icon: LayoutList, href: '/topics' },
-    { label: 'Resources', value: recentResources.length, icon: BookOpen, href: '/resources' },
-    { label: 'Snippets', value: snippetList.length, icon: Code, href: '/snippets' },
+    { label: 'Topics', value: topicCount, icon: LayoutList, href: '/topics' },
+    { label: 'Resources', value: resourceCount, icon: BookOpen, href: '/resources' },
+    { label: 'Snippets', value: snippetCount, icon: Code, href: '/snippets' },
   ]
 
   return (
