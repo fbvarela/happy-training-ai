@@ -27,7 +27,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
     title: title?.trim() ?? null,
     order,
     transcriptStatus: type === 'video' ? 'pending' : null,
-    language: type === 'snippet' ? (language ?? 'typescript') : null,
+    language: type === 'snippet' ? (language ?? 'markdown') : null,
     code: type === 'snippet' ? code.trim() : null,
   })
 

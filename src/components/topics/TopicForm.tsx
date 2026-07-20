@@ -23,6 +23,7 @@ export function TopicForm({ topic }: TopicFormProps) {
   const [description, setDescription] = useState(topic?.description ?? '')
   const [icon, setIcon] = useState(topic?.icon ?? DEFAULT_TOPIC_ICON)
   const [color, setColor] = useState(topic?.color ?? '#4a7c59')
+  const [contentKind, setContentKind] = useState<string | null>(topic?.contentKind ?? null)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -36,7 +37,7 @@ export function TopicForm({ topic }: TopicFormProps) {
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, description, icon, color }),
+        body: JSON.stringify({ name, description, icon, color, contentKind }),
       })
 
       if (!res.ok) throw new Error(await res.text())
@@ -133,6 +134,31 @@ export function TopicForm({ topic }: TopicFormProps) {
             />
           ))}
         </div>
+      </div>
+
+      <div className="field">
+        <span className="input-label">New notes under this topic</span>
+        <div style={{ display: 'flex', gap: '8px', marginTop: '6px' }}>
+          <button
+            type="button"
+            onClick={() => setContentKind(contentKind === 'prose' ? null : 'prose')}
+            className={`btn btn-sm ${contentKind === 'prose' || !contentKind ? 'btn-primary' : 'btn-ghost'}`}
+            style={{ fontSize: '0.8rem' }}
+          >
+            Mostly writing
+          </button>
+          <button
+            type="button"
+            onClick={() => setContentKind(contentKind === 'code' ? null : 'code')}
+            className={`btn btn-sm ${contentKind === 'code' ? 'btn-primary' : 'btn-ghost'}`}
+            style={{ fontSize: '0.8rem' }}
+          >
+            Mostly code
+          </button>
+        </div>
+        <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '6px' }}>
+          Just a default for the note editor — every resource can still hold any kind of content.
+        </p>
       </div>
 
       <div style={{ display: 'flex', gap: '10px', paddingTop: '4px' }}>

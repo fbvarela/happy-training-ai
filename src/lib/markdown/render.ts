@@ -1,5 +1,5 @@
 import { marked } from 'marked'
-import DOMPurify from 'dompurify'
+import DOMPurify from 'isomorphic-dompurify'
 
 const ALLOWED_TAGS = [
   'p', 'br', 'strong', 'b', 'em', 'i', 'del', 's',

@@ -10,7 +10,7 @@ export default async function EditSnippetPage({ params }: { params: Promise<{ id
 
   return (
     <div>
-      <TopBar title="Edit Snippet" description={`Editing "${snippet.title}"`} />
+      <TopBar title="Edit Note" description={`Editing "${snippet.title}"`} />
       <SnippetForm snippet={snippet} />
     </div>
   )

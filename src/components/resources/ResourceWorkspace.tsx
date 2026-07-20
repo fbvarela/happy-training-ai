@@ -203,7 +203,7 @@ function ImageContent({ element }: { element: ElementWithContent }) {
 
 function SnippetContent({ element }: { element: ElementWithContent }) {
   if (!element.code) return null
-  return <CodeView code={element.code} language={element.language ?? 'typescript'} />
+  return <CodeView code={element.code} language={element.language ?? 'markdown'} />
 }
 
 function InlineContent({ element }: { element: ElementWithContent }) {
@@ -237,7 +237,7 @@ function MainPanel({
   const [type, setType] = useState(element.type)
   const [url, setUrl] = useState(element.url ?? '')
   const [title, setTitle] = useState(element.title ?? '')
-  const [language, setLanguage] = useState(element.language ?? 'typescript')
+  const [language, setLanguage] = useState(element.language ?? 'markdown')
   const [code, setCode] = useState(element.code ?? '')
   const [previewing, setPreviewing] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -308,7 +308,7 @@ function MainPanel({
           </>
         ) : editing ? (
           <>
-            <button onClick={() => { setEditing(false); setUrl(element.url ?? ''); setTitle(element.title ?? ''); setType(element.type); setLanguage(element.language ?? 'typescript'); setCode(element.code ?? ''); setPreviewing(false) }}
+            <button onClick={() => { setEditing(false); setUrl(element.url ?? ''); setTitle(element.title ?? ''); setType(element.type); setLanguage(element.language ?? 'markdown'); setCode(element.code ?? ''); setPreviewing(false) }}
               className="btn btn-ghost btn-sm" style={{ padding: '4px 8px' }}>
               <X size={13} /> Cancel
             </button>
@@ -387,7 +387,7 @@ function MainPanel({
           content={element.code}
           contentLabel="this snippet"
           resourceId={resourceId}
-          defaultLanguage={element.language ?? 'typescript'}
+          defaultLanguage={element.language ?? 'markdown'}
           onSaved={(el) => onElementAdded?.({ ...el, extractedHtml: null })}
         />
       )}
@@ -517,17 +517,19 @@ function AddForm({
   order,
   onSaved,
   onCancel,
+  defaultLanguage = 'markdown',
 }: {
   resourceId: number
   order: number
   onSaved: (el: ElementWithContent) => void
   onCancel: () => void
+  defaultLanguage?: string
 }) {
   const [mode, setMode] = useState<'file' | 'url' | 'snippet'>('file')
   const [type, setType] = useState('pdf')
   const [url, setUrl] = useState('')
   const [title, setTitle] = useState('')
-  const [language, setLanguage] = useState('typescript')
+  const [language, setLanguage] = useState(defaultLanguage)
   const [code, setCode] = useState('')
   const [previewing, setPreviewing] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -566,7 +568,7 @@ function AddForm({
   async function save() {
     if (mode === 'url' && !url.trim()) { toast.error('URL is required'); return }
     if (mode === 'file' && !uploadedFileUrl) { toast.error('Please select a file'); return }
-    if (mode === 'snippet' && !code.trim()) { toast.error('Code is required'); return }
+    if (mode === 'snippet' && !code.trim()) { toast.error('Content is required'); return }
     setSaving(true)
     try {
       const body = mode === 'url'
@@ -600,7 +602,7 @@ function AddForm({
           <LinkIcon size={12} /> URL
         </button>
         <button onClick={() => setMode('snippet')} className={`btn btn-sm ${mode === 'snippet' ? 'btn-primary' : 'btn-ghost'}`} style={{ fontSize: '0.76rem', flex: 1, justifyContent: 'center' }}>
-          <Code2 size={12} /> Snippet
+          <Code2 size={12} /> Note
         </button>
       </div>
 
@@ -674,9 +676,11 @@ interface Props {
   resourceId: number
   initialElements: ElementWithContent[]
   sidebarFooter?: ReactNode
+  /** Advisory hint from the resource's topics — nudges the new-note default format, never restricts content. */
+  noteContentKind?: 'code' | 'prose'
 }
 
-export function ResourceWorkspace({ resourceId, initialElements, sidebarFooter }: Props) {
+export function ResourceWorkspace({ resourceId, initialElements, sidebarFooter, noteContentKind }: Props) {
   const [elements, setElements] = useState<ElementWithContent[]>(initialElements)
   const [expandedIds, setExpandedIds] = useState<number[]>([])
   const [adding, setAdding] = useState(false)
@@ -780,6 +784,7 @@ export function ResourceWorkspace({ resourceId, initialElements, sidebarFooter }
             order={elements.length}
             onSaved={handleSaved}
             onCancel={() => setAdding(false)}
+            defaultLanguage={noteContentKind === 'code' ? 'typescript' : 'markdown'}
           />
         ) : (
           <button onClick={() => setAdding(true)} className="btn btn-ghost btn-sm" style={{ alignSelf: 'flex-start' }}>
