@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
   const snippet = await createSnippet({
     title: title.trim(),
     description: description?.trim() ?? null,
-    language: language ?? 'typescript',
+    language: language ?? 'markdown',
     code: code.trim(),
     tags: JSON.stringify(tags ?? []),
     resourceId: resourceId ? Number(resourceId) : null,

@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { Pencil, Check, X, WandSparkles, Loader2, ChevronDown, ChevronUp, Bold, Italic } from 'lucide-react'
 import { toast } from 'sonner'
-import DOMPurify from 'dompurify'
+import DOMPurify from 'isomorphic-dompurify'
 
 interface Props {
   transcript: string | null

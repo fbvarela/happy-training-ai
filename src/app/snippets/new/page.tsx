@@ -4,7 +4,7 @@ import { SnippetForm } from '@/components/snippets/SnippetForm'
 export default function NewSnippetPage() {
   return (
     <div>
-      <TopBar title="New Snippet" description="Create a syntax-highlighted code snippet" />
+      <TopBar title="New Note" description="Write a note, or add a code snippet with syntax highlighting" />
       <SnippetForm />
     </div>
   )

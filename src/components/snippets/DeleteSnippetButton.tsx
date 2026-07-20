@@ -16,11 +16,11 @@ export function DeleteSnippetButton({ id }: { id: number }) {
     try {
       const res = await fetch(`/api/snippets/${id}`, { method: 'DELETE' })
       if (!res.ok) throw new Error()
-      toast.success('Snippet deleted')
+      toast.success('Note deleted')
       router.push('/snippets')
       router.refresh()
     } catch {
-      toast.error('Failed to delete snippet')
+      toast.error('Failed to delete note')
       setLoading(false)
     }
   }
@@ -28,7 +28,7 @@ export function DeleteSnippetButton({ id }: { id: number }) {
   if (confirming) {
     return (
       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Delete snippet?</span>
+        <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>Delete note?</span>
         <button onClick={() => setConfirming(false)} className="btn btn-ghost btn-sm">
           <X size={13} /> No
         </button>

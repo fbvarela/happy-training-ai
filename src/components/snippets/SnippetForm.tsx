@@ -17,9 +17,13 @@ export function SnippetForm({ snippet }: SnippetFormProps) {
   const [loading, setLoading] = useState(false)
   const [title, setTitle] = useState(snippet?.title ?? '')
   const [description, setDescription] = useState(snippet?.description ?? '')
-  const [language, setLanguage] = useState<Language>((snippet?.language as Language) ?? 'typescript')
+  const [language, setLanguage] = useState<Language>((snippet?.language as Language) ?? 'markdown')
   const [code, setCode] = useState(snippet?.code ?? '')
   const [previewing, setPreviewing] = useState(false)
+  // New notes default to markdown (plain writing) — the language picker is
+  // only worth showing up front for existing code notes; everyone else can
+  // opt in via "Change format".
+  const [formatExpanded, setFormatExpanded] = useState(!!snippet && snippet.language !== 'markdown')
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -38,7 +42,7 @@ export function SnippetForm({ snippet }: SnippetFormProps) {
 
       if (!res.ok) throw new Error(await res.text())
       const data = await res.json()
-      toast.success(snippet ? 'Snippet updated' : 'Snippet created')
+      toast.success(snippet ? 'Note updated' : 'Note created')
       router.push(`/snippets/${data.id}`)
       router.refresh()
     } catch {
@@ -50,7 +54,7 @@ export function SnippetForm({ snippet }: SnippetFormProps) {
 
   return (
     <form onSubmit={handleSubmit} style={{ maxWidth: '720px', display: 'flex', flexDirection: 'column', gap: '18px' }}>
-      <div className="grid grid-cols-[1fr_180px] gap-[14px]">
+      <div className={formatExpanded ? 'grid grid-cols-[1fr_180px] gap-[14px]' : undefined}>
         <div className="field" style={{ margin: 0 }}>
           <label className="input-label" htmlFor="title">Title *</label>
           <input
@@ -58,22 +62,33 @@ export function SnippetForm({ snippet }: SnippetFormProps) {
             className="hf-input"
             value={title}
             onChange={e => setTitle(e.target.value)}
-            placeholder="e.g. Fetch with retry"
+            placeholder="e.g. Fetch with retry, or Rose pruning notes"
             required
           />
         </div>
-        <div className="field" style={{ margin: 0 }}>
-          <label className="input-label" htmlFor="language">Language</label>
-          <select
-            id="language"
-            className="hf-input"
-            value={language}
-            onChange={e => setLanguage(e.target.value as Language)}
-            style={{ cursor: 'pointer' }}
+        {formatExpanded ? (
+          <div className="field" style={{ margin: 0 }}>
+            <label className="input-label" htmlFor="language">Format</label>
+            <select
+              id="language"
+              className="hf-input"
+              value={language}
+              onChange={e => setLanguage(e.target.value as Language)}
+              style={{ cursor: 'pointer' }}
+            >
+              {LANGUAGES.map(l => <option key={l} value={l}>{l}</option>)}
+            </select>
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setFormatExpanded(true)}
+            className="btn btn-ghost btn-sm"
+            style={{ marginTop: '6px', alignSelf: 'flex-start', fontSize: '0.78rem' }}
           >
-            {LANGUAGES.map(l => <option key={l} value={l}>{l}</option>)}
-          </select>
-        </div>
+            Change format
+          </button>
+        )}
       </div>
 
       <div className="field" style={{ margin: 0 }}>
@@ -83,7 +98,7 @@ export function SnippetForm({ snippet }: SnippetFormProps) {
           className="hf-input"
           value={description}
           onChange={e => setDescription(e.target.value)}
-          placeholder="What does this snippet do?"
+          placeholder="What's this note about?"
           rows={2}
           style={{ resize: 'vertical' }}
         />
@@ -91,7 +106,7 @@ export function SnippetForm({ snippet }: SnippetFormProps) {
 
       <div className="field" style={{ margin: 0 }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '6px' }}>
-          <label className="input-label" style={{ margin: 0 }}>Code *</label>
+          <label className="input-label" style={{ margin: 0 }}>{language === 'markdown' ? 'Content *' : 'Code *'}</label>
           {language === 'markdown' && (
             <div style={{ display: 'flex', gap: '6px' }}>
               <button type="button" onClick={() => setPreviewing(false)} className={`btn btn-sm ${!previewing ? 'btn-primary' : 'btn-ghost'}`} style={{ fontSize: '0.75rem' }}>
@@ -112,7 +127,7 @@ export function SnippetForm({ snippet }: SnippetFormProps) {
 
       <div style={{ display: 'flex', gap: '10px' }}>
         <button type="submit" disabled={loading || !title.trim() || !code.trim()} className="btn btn-primary">
-          {loading ? 'Saving…' : snippet ? 'Save Changes' : 'Create Snippet'}
+          {loading ? 'Saving…' : snippet ? 'Save Changes' : 'Create Note'}
         </button>
         <button type="button" className="btn btn-ghost" onClick={() => router.back()}>
           Cancel

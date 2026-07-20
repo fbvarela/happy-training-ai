@@ -10,7 +10,7 @@ const navItems = [
   { href: '/', label: 'Home', icon: Home },
   { href: '/topics', label: 'Topics', icon: LayoutList },
   { href: '/resources', label: 'Resources', icon: BookOpen },
-  { href: '/snippets', label: 'Snippets', icon: Code },
+  { href: '/snippets', label: 'Notes', icon: Code },
   { href: '/ai', label: 'AI', icon: Brain },
 ]
 
