@@ -1,6 +1,7 @@
 import {
   BookOpen, Target, Code2, Brain, Wrench, Palette,
   BarChart2, Rocket, FlaskConical, FileText, Globe, Zap,
+  Sprout, PenTool, ChefHat, Dumbbell, Music, Camera,
   type LucideIcon,
 } from 'lucide-react'
 
@@ -17,6 +18,14 @@ export const TOPIC_ICONS: Record<string, LucideIcon> = {
   file:    FileText,
   globe:   Globe,
   zap:     Zap,
+  // Non-coding domains — e.g. gardening, writing, cooking — so a topic's
+  // icon doesn't have to borrow a programming-flavored one.
+  sprout:   Sprout,
+  pen:      PenTool,
+  chef:     ChefHat,
+  dumbbell: Dumbbell,
+  music:    Music,
+  camera:   Camera,
 }
 
 export const DEFAULT_TOPIC_ICON = 'book'
