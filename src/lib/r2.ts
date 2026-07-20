@@ -95,17 +95,34 @@ const ALLOWED_TYPES = new Set([
 ])
 
 /**
- * 4 MB request-body cap matches Vercel Serverless Functions' platform limit;
- * larger uploads are rejected by the platform before our route sees them.
- * Images are compressed client-side to fit; PDFs/videos/files above this are
- * rejected with a clear message rather than failing opaquely with a 413.
+ * 4 MB request-body cap matches Vercel Serverless Functions' platform limit —
+ * this only applies to the legacy /api/resources/upload route, which proxies
+ * the file's bytes through our own function and is rejected by the platform
+ * before our route even sees anything larger. Images are compressed
+ * client-side to fit; anything bigger should use getSignedUploadUrl() below
+ * instead, which uploads straight from the browser to R2 and isn't subject
+ * to this limit.
  */
 const MAX_BYTES = 4 * 1024 * 1024
+
+/**
+ * Ceiling for the direct-to-R2 presigned upload path — generous headroom for
+ * PDFs/videos, well under R2's own per-object limits. Not a platform
+ * constraint like MAX_BYTES, just a sane app-level cap.
+ */
+const MAX_DIRECT_UPLOAD_BYTES = 200 * 1024 * 1024
 
 /** Returns null if valid, otherwise a human-readable error message. */
 export function validateUpload(contentType: string, byteLength: number): string | null {
   if (!ALLOWED_TYPES.has(contentType)) return "Unsupported file type"
   if (byteLength > MAX_BYTES) return "File too large (max 4 MB)"
+  return null
+}
+
+/** Same type check as validateUpload, but against the much larger direct-upload ceiling. */
+export function validateDirectUpload(contentType: string, byteLength: number): string | null {
+  if (!ALLOWED_TYPES.has(contentType)) return "Unsupported file type"
+  if (byteLength > MAX_DIRECT_UPLOAD_BYTES) return "File too large (max 200 MB)"
   return null
 }
 
@@ -139,6 +156,34 @@ async function uploadViaS3(bucket: string, key: string, body: Buffer | Uint8Arra
     ContentType: contentType,
     CacheControl: "public, max-age=31536000, immutable",
   }))
+}
+
+/**
+ * Presigned PUT URL for direct browser-to-R2 uploads, bypassing our own
+ * serverless function (and its platform body-size limit) entirely for
+ * larger files. Requires the S3 API — not available via the CF Workers
+ * binding, but that path is only used in the CF Workers build anyway.
+ */
+export async function getSignedUploadUrl(
+  key: string,
+  contentType: string,
+  expiresIn = 300,
+): Promise<{ uploadUrl: string; publicUrl: string; key: string }> {
+  const cfg = requireS3Config()
+  const bucket = resolveBucket()
+  const { S3Client, PutObjectCommand } = await import("@aws-sdk/client-s3")
+  const { getSignedUrl } = await import("@aws-sdk/s3-request-presigner")
+  const r2 = new S3Client({
+    region: "auto",
+    endpoint: cfg.endpoint,
+    credentials: { accessKeyId: cfg.accessKeyId, secretAccessKey: cfg.secretAccessKey },
+  })
+  const uploadUrl = await getSignedUrl(
+    r2,
+    new PutObjectCommand({ Bucket: bucket, Key: key, ContentType: contentType }),
+    { expiresIn },
+  )
+  return { uploadUrl, publicUrl: `${resolvePublicBase()}/${key}`, key }
 }
 
 async function deleteViaS3(bucket: string, key: string) {
