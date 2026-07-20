@@ -7,6 +7,9 @@ export const topics = pgTable('topics', {
   description: text('description'),
   icon: text('icon').default('book'),
   color: text('color').default('#6366f1'),
+  // Advisory hint only — never restricts what a resource under this topic
+  // can contain. 'code' | 'prose' | null (null = prose-default UI).
+  contentKind: text('content_kind'),
   parentId: integer('parent_id').references((): AnyPgColumn => topics.id),
   createdAt: timestamp('created_at').notNull().defaultNow(),
   updatedAt: timestamp('updated_at').notNull().defaultNow(),

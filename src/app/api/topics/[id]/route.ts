@@ -11,7 +11,7 @@ export async function GET(_req: NextRequest, { params }: { params: Promise<{ id:
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const body = await req.json()
-  const { name, description, icon, color, parentId } = body
+  const { name, description, icon, color, parentId, contentKind } = body
 
   const updated = await updateTopic(Number(id), {
     ...(name && { name: name.trim(), slug: slugify(name) }),
@@ -19,6 +19,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
     ...(icon !== undefined && { icon }),
     ...(color !== undefined && { color }),
     ...(parentId !== undefined && { parentId }),
+    ...(contentKind !== undefined && { contentKind }),
   })
 
   if (!updated) return NextResponse.json({ error: 'Not found' }, { status: 404 })

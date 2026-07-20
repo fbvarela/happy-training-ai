@@ -517,17 +517,19 @@ function AddForm({
   order,
   onSaved,
   onCancel,
+  defaultLanguage = 'markdown',
 }: {
   resourceId: number
   order: number
   onSaved: (el: ElementWithContent) => void
   onCancel: () => void
+  defaultLanguage?: string
 }) {
   const [mode, setMode] = useState<'file' | 'url' | 'snippet'>('file')
   const [type, setType] = useState('pdf')
   const [url, setUrl] = useState('')
   const [title, setTitle] = useState('')
-  const [language, setLanguage] = useState('markdown')
+  const [language, setLanguage] = useState(defaultLanguage)
   const [code, setCode] = useState('')
   const [previewing, setPreviewing] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -674,9 +676,11 @@ interface Props {
   resourceId: number
   initialElements: ElementWithContent[]
   sidebarFooter?: ReactNode
+  /** Advisory hint from the resource's topics — nudges the new-note default format, never restricts content. */
+  noteContentKind?: 'code' | 'prose'
 }
 
-export function ResourceWorkspace({ resourceId, initialElements, sidebarFooter }: Props) {
+export function ResourceWorkspace({ resourceId, initialElements, sidebarFooter, noteContentKind }: Props) {
   const [elements, setElements] = useState<ElementWithContent[]>(initialElements)
   const [expandedIds, setExpandedIds] = useState<number[]>([])
   const [adding, setAdding] = useState(false)
@@ -780,6 +784,7 @@ export function ResourceWorkspace({ resourceId, initialElements, sidebarFooter }
             order={elements.length}
             onSaved={handleSaved}
             onCancel={() => setAdding(false)}
+            defaultLanguage={noteContentKind === 'code' ? 'typescript' : 'markdown'}
           />
         ) : (
           <button onClick={() => setAdding(true)} className="btn btn-ghost btn-sm" style={{ alignSelf: 'flex-start' }}>

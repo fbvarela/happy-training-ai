@@ -62,6 +62,10 @@ export default async function ResourceDetailPage({ params }: { params: Promise<{
 
   const TypeIcon = getResourceIcon(resource.type)
 
+  // Advisory only — a code-tagged topic nudges the new-note default toward a
+  // programming language instead of prose; any topic can still hold either.
+  const noteContentKind = resource.topics.some((t) => t.contentKind === 'code') ? 'code' : 'prose'
+
   return (
     <div>
       <TopBar
@@ -95,6 +99,7 @@ export default async function ResourceDetailPage({ params }: { params: Promise<{
       <ResourceWorkspace
         resourceId={resource.id}
         initialElements={items}
+        noteContentKind={noteContentKind}
         sidebarFooter={
           <>
             {resource.aiSummary && (
