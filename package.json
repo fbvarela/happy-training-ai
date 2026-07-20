@@ -14,7 +14,8 @@
   "dependencies": {
     "@ai-sdk/cohere": "^4.0.1",
     "@ai-sdk/groq": "^4.0.1",
-    "@aws-sdk/client-s3": "^3.1077.0",
+    "@aws-sdk/client-s3": "^3.1091.0",
+    "@aws-sdk/s3-request-presigner": "^3.1091.0",
     "@base-ui/react": "^1.6.0",
     "@codemirror/commands": "^6.10.4",
     "@codemirror/lang-java": "^6.0.2",

@@ -18,6 +18,7 @@ import { MarkdownPreview } from '../markdown/MarkdownPreview'
 import { LANGUAGES } from '@/lib/snippets/languages'
 import { proxyImageUrl } from '@/lib/r2'
 import { compressImageFile } from '@/lib/image/compress'
+import { uploadFileDirect } from '@/lib/uploadClient'
 
 export type ElementWithContent = ResourceElement & {
   extractedHtml?: string | null
@@ -541,18 +542,13 @@ function AddForm({
   async function handleFile(rawFile: File) {
     setUploading(true)
     try {
-      // Compress images client-side so phone photos fit under the
-      // serverless function body-size limit before they're sent.
+      // Compress images client-side — keeps small photos on the fast path,
+      // but anything still large (or non-image, like a PDF) goes straight
+      // to R2 via a presigned URL, uploadFileDirect() isn't limited by our
+      // own serverless function's body-size cap.
       const file = rawFile.type.startsWith('image/') ? await compressImageFile(rawFile) : rawFile
 
-      const fd = new FormData()
-      fd.append('file', file)
-      const res = await fetch('/api/resources/upload', { method: 'POST', body: fd })
-      if (!res.ok) {
-        const data = await res.json().catch(() => null)
-        throw new Error(data?.error ?? 'Upload failed')
-      }
-      const data = await res.json()
+      const data = await uploadFileDirect(file)
       const ext = file.name.slice(file.name.lastIndexOf('.')).toLowerCase()
       setUploadedFileUrl(data.fileUrl)
       setUploadedFileName(file.name)

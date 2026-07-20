@@ -4,6 +4,7 @@ import { useRef, useState } from 'react'
 import { Plus, Trash2, Pencil, Check, X, Video, FileText, Newspaper, Paperclip, BookOpen, Upload, Link as LinkIcon, Loader2 } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
+import { uploadFileDirect } from '@/lib/uploadClient'
 import type { ResourceElement } from '@/lib/db/schema'
 
 const TYPE_OPTIONS = [
@@ -202,17 +203,13 @@ function NewRow({
   async function handleFile(file: File) {
     setUploading(true)
     try {
-      const fd = new FormData()
-      fd.append('file', file)
-      const res = await fetch('/api/resources/upload', { method: 'POST', body: fd })
-      if (!res.ok) throw new Error()
-      const data = await res.json()
+      const data = await uploadFileDirect(file)
       setUploadedFileUrl(data.fileUrl)
       setUploadedFileName(file.name)
       setType(data.type)
       if (!title) setTitle(file.name.replace(/\.[^.]+$/, ''))
-    } catch {
-      toast.error('Upload failed')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Upload failed')
     } finally {
       setUploading(false)
     }

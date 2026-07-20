@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Upload } from 'lucide-react'
 import { toast } from 'sonner'
 import { TopicMultiSelect } from '@/components/topics/TopicMultiSelect'
+import { uploadFileDirect } from '@/lib/uploadClient'
 import type { Topic } from '@/lib/db/schema'
 
 interface PDFUploadProps {
@@ -30,14 +31,8 @@ export function PDFUpload({ topics }: PDFUploadProps) {
 
     setLoading(true)
     try {
-      // 1. Upload file
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('title', title || file.name)
-
-      const uploadRes = await fetch('/api/resources/upload', { method: 'POST', body: formData })
-      if (!uploadRes.ok) throw new Error('Upload failed')
-      const { fileUrl } = await uploadRes.json()
+      // 1. Upload file directly to R2, bypassing our own function's body-size limit
+      const { fileUrl } = await uploadFileDirect(file, title || file.name)
 
       // 2. Create resource record
       const createRes = await fetch('/api/resources', {
@@ -56,8 +51,8 @@ export function PDFUpload({ topics }: PDFUploadProps) {
       toast.success('PDF uploaded')
       router.push(`/resources/${resource.id}/pdf`)
       router.refresh()
-    } catch {
-      toast.error('Upload failed')
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Upload failed')
     } finally {
       setLoading(false)
     }

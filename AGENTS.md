@@ -64,7 +64,15 @@ There is no test suite / test runner configured in this project.
   - `r2.ts` — Cloudflare R2 object storage client, shared bucket/creds across
     the Happy Factory suite, this app's uploads namespaced under
     `training/`. Supports both the native CF Workers R2 binding and an
-    S3-compatible endpoint (Vercel/Node), auto-detected at runtime.
+    S3-compatible endpoint (Vercel/Node), auto-detected at runtime. Two
+    upload paths: `POST /api/resources/upload` proxies small files (≤4MB,
+    Vercel's serverless function body-size ceiling) through our own
+    function; anything larger uses `getSignedUploadUrl()` +
+    `POST /api/resources/upload-url` + the client-side
+    `uploadFileDirect()` helper (`src/lib/uploadClient.ts`) to PUT straight
+    from the browser to R2, capped at 200MB (`validateDirectUpload`). All
+    three upload UIs (`ResourceWorkspace.tsx`, `PDFUpload.tsx`,
+    `ElementsEditor.tsx`) use the direct-upload helper.
   - `image/compress.ts`, `text/stripHtml.ts` — small utilities.
 - **AI SDK usage**: Vercel AI SDK (`ai` package) with `@ai-sdk/groq` (chat/
   summarize/explain, mostly `llama-3.1-8b-instant`) and `@ai-sdk/cohere`.
