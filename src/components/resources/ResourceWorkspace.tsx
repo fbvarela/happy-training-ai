@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import {
   Plus, Trash2, Pencil, Check, X,
   Video, FileText, Newspaper, Paperclip, Image as ImageIcon, Code2,
-  Upload, Link as LinkIcon, Loader2, ExternalLink, ChevronDown, ChevronUp,
+  Upload, Link as LinkIcon, Loader2, ExternalLink, ChevronDown, ChevronUp, GripVertical,
 } from 'lucide-react'
 import { toast } from 'sonner'
 import type { ResourceElement } from '@/lib/db/schema'
@@ -435,12 +435,24 @@ function ComplementCard({
   expanded,
   onToggle,
   onDelete,
+  onDragStart,
+  onDragOver,
+  onDrop,
+  onDragEnd,
+  isDragging,
+  isDropTarget,
 }: {
   element: ElementWithContent
   resourceId: number
   expanded: boolean
   onToggle: () => void
   onDelete: (id: number) => void
+  onDragStart: () => void
+  onDragOver: () => void
+  onDrop: () => void
+  onDragEnd: () => void
+  isDragging: boolean
+  isDropTarget: boolean
 }) {
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -465,16 +477,29 @@ function ComplementCard({
       role="button"
       tabIndex={0}
       onKeyDown={e => { if (e.key === 'Enter') onToggle() }}
+      onDragOver={e => { e.preventDefault(); onDragOver() }}
+      onDrop={e => { e.preventDefault(); onDrop() }}
       title={expanded ? 'Shown below — click to hide' : 'Click to show below the main resource'}
       style={{
-        display: 'flex', alignItems: 'center', gap: '10px',
+        display: 'flex', alignItems: 'center', gap: '6px',
         padding: '10px 12px',
         background: expanded ? 'var(--cream)' : 'var(--surface)',
-        border: `1.5px solid ${expanded ? 'var(--bark)' : 'var(--line)'}`,
+        border: `1.5px solid ${isDropTarget ? 'var(--sun)' : expanded ? 'var(--bark)' : 'var(--line)'}`,
         borderRadius: '10px',
         cursor: 'pointer',
+        opacity: isDragging ? 0.5 : 1,
       }}
     >
+      <span
+        draggable
+        onClick={e => e.stopPropagation()}
+        onDragStart={e => { e.stopPropagation(); onDragStart() }}
+        onDragEnd={onDragEnd}
+        title="Drag to reorder"
+        style={{ display: 'flex', alignItems: 'center', cursor: 'grab', flexShrink: 0, touchAction: 'none' }}
+      >
+        <GripVertical size={14} style={{ color: 'var(--text-muted)', opacity: 0.6 }} />
+      </span>
       <TypeGlyph type={element.type} size={15} style={{ color: 'var(--bark)', opacity: 0.6, flexShrink: 0 }} />
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--bark)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -680,6 +705,8 @@ export function ResourceWorkspace({ resourceId, initialElements, sidebarFooter, 
   const [elements, setElements] = useState<ElementWithContent[]>(initialElements)
   const [expandedIds, setExpandedIds] = useState<number[]>([])
   const [adding, setAdding] = useState(false)
+  const [dragId, setDragId] = useState<number | null>(null)
+  const [dragOverId, setDragOverId] = useState<number | null>(null)
 
   // router.refresh() (e.g. after transcribing) sends a fresh `initialElements`
   // prop with a new array identity — resync local state so those updates
@@ -711,6 +738,39 @@ export function ResourceWorkspace({ resourceId, initialElements, sidebarFooter, 
   function handleSaved(el: ElementWithContent) {
     setElements(prev => [...prev, el])
     setAdding(false)
+  }
+
+  function handleDrop(targetId: number) {
+    const fromId = dragId
+    setDragId(null)
+    setDragOverId(null)
+    if (fromId === null || fromId === targetId) return
+
+    setElements(prev => {
+      const mainItem = prev[0]
+      const rest = prev.slice(1)
+      const fromIndex = rest.findIndex(e => e.id === fromId)
+      const toIndex = rest.findIndex(e => e.id === targetId)
+      if (fromIndex === -1 || toIndex === -1) return prev
+
+      const reordered = [...rest]
+      const [moved] = reordered.splice(fromIndex, 1)
+      reordered.splice(toIndex, 0, moved)
+
+      // Persist the new order — only PATCH rows whose order actually moved.
+      reordered.forEach((el, i) => {
+        if (el.order !== i) {
+          fetch(`/api/resources/${resourceId}/elements/${el.id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ order: i }),
+          }).catch(() => toast.error('Failed to save new order'))
+        }
+      })
+
+      const withOrder = reordered.map((el, i) => ({ ...el, order: i }))
+      return mainItem ? [mainItem, ...withOrder] : withOrder
+    })
   }
 
   function handleElementAdded(el: ElementWithContent) {
@@ -768,6 +828,12 @@ export function ResourceWorkspace({ resourceId, initialElements, sidebarFooter, 
                   expanded={expandedIds.includes(el.id)}
                   onToggle={() => toggleExpanded(el.id)}
                   onDelete={handleDelete}
+                  onDragStart={() => setDragId(el.id)}
+                  onDragOver={() => setDragOverId(el.id)}
+                  onDrop={() => handleDrop(el.id)}
+                  onDragEnd={() => { setDragId(null); setDragOverId(null) }}
+                  isDragging={dragId === el.id}
+                  isDropTarget={dragOverId === el.id && dragId !== el.id}
                 />
               ))}
             </div>
