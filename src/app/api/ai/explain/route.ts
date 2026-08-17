@@ -12,7 +12,7 @@ export async function POST(req: NextRequest) {
   const groq = createGroq({ apiKey: process.env.GROQ_API_KEY })
 
   const result = streamText({
-    model: groq('llama-3.1-8b-instant'),
+    model: groq('openai/gpt-oss-20b'),
     maxOutputTokens: 2048,
     system,
     prompt: `Language: ${language}\n\n\`\`\`${language}\n${code}\n\`\`\``,

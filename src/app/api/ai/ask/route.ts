@@ -4,7 +4,7 @@ import { createGroq } from '@ai-sdk/groq'
 import { getSetting } from '@/lib/settings/queries'
 import { ASK_CONTENT_PROMPT_KEY, DEFAULT_ASK_CONTENT_PROMPT } from '@/lib/ai/askContentPrompt'
 
-// llama-3.1-8b-instant has a hard ~6,000 token per-request ceiling (see
+// The model has a hard per-request token ceiling (see
 // src/lib/resources/explainTranscript.ts and src/app/api/repo-ai/suggest/route.ts
 // for the same constraint) — long transcripts sent in full fail outright
 // with "Request too large". Cap content well under that, leaving headroom
@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
   const groq = createGroq({ apiKey: process.env.GROQ_API_KEY })
 
   const result = streamText({
-    model: groq('llama-3.1-8b-instant'),
+    model: groq('openai/gpt-oss-20b'),
     maxOutputTokens: 1200,
     maxRetries: 5,
     system,

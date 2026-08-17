@@ -31,7 +31,7 @@ function splitIntoChunks(text: string): string[] {
 async function rewriteChunk(chunk: string, systemPrompt: string): Promise<string> {
   const groq = createGroq({ apiKey: process.env.GROQ_API_KEY })
   const { text } = await generateText({
-    model: groq('llama-3.1-8b-instant'),
+    model: groq('openai/gpt-oss-20b'),
     system: systemPrompt,
     prompt: chunk,
     maxRetries: 5,
@@ -50,7 +50,7 @@ export async function rewriteTranscript(rawTranscript: string): Promise<string> 
     return rewriteChunk(text, systemPrompt)
   }
   const chunks = splitIntoChunks(text)
-  // llama-3.1-8b-instant has a tight tokens-per-minute quota — running chunks
+  // The model has a tight tokens-per-minute quota — running chunks
   // concurrently blows through it immediately (each chunk is a few thousand
   // tokens), so process them one at a time instead of Promise.all.
   const parts: string[] = []
