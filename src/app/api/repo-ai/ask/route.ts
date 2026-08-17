@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
 
   if (matches.length === 0) {
     const result = streamText({
-      model: groq('llama-3.1-8b-instant'),
+    model: groq('openai/gpt-oss-20b'),
       system: 'You answer questions about a repository, but no relevant indexed files were found for this question.',
       prompt: `The user asked: "${question}"\n\nNo matching files were found in the index. Tell them plainly that you couldn't find relevant files for this question in the synced repo, and suggest they try different keywords or re-sync the repo.`,
     })
@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
   }
 
   const result = streamText({
-    model: groq('llama-3.1-8b-instant'),
+      model: groq('openai/gpt-oss-20b'),
     system: `You answer questions about the repository "${repo.fullName}" using only the provided file excerpts. Every factual claim must cite the file path it came from (e.g. "in src/foo.ts"). If the excerpts don't contain the answer, say so explicitly rather than guessing.`,
     prompt: `Question: ${question}
 

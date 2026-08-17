@@ -2,7 +2,7 @@ import { generateText } from 'ai'
 import { createGroq } from '@ai-sdk/groq'
 import { stripHtml } from '@/lib/text/stripHtml'
 
-// llama-3.1-8b-instant has a hard ~6,000 token per-request ceiling (Groq TPM
+// The model has a hard per-request ceiling (Groq TPM
 // limit applies per call, not just over time) — a full transcript sent in
 // one request fails outright with "Request too large". So for long
 // transcripts we chunk, take notes per chunk (small output, sequential to
@@ -13,7 +13,7 @@ const CHUNK_THRESHOLD = 9_000
 const MAX_TOTAL_CHARS = 100_000
 // Keeps the combined notes small enough that the final synthesis call
 // (notes + system prompt + its own maxOutputTokens) still fits under
-// llama-3.1-8b-instant's ~6,000 token per-request ceiling.
+// the model's per-request token ceiling.
 const MAX_NOTES_CHARS = 6_000
 
 function splitIntoChunks(text: string): string[] {
@@ -39,7 +39,7 @@ function splitIntoChunks(text: string): string[] {
 async function noteChunk(chunk: string): Promise<string> {
   const groq = createGroq({ apiKey: process.env.GROQ_API_KEY })
   const { text } = await generateText({
-    model: groq('llama-3.1-8b-instant'),
+    model: groq('openai/gpt-oss-20b'),
     maxOutputTokens: 350,
     maxRetries: 5,
     system: `You are taking detailed notes on a section of a video/article transcript. List the key points, topics, technical terms, and any code/library/API names mentioned, as concise bullet points. Preserve specifics (names, numbers, technical terms) exactly — do not generalize them away.`,

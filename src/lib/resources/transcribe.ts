@@ -34,7 +34,7 @@ export async function transcribeYouTube(videoUrl: string): Promise<TranscriptRes
   const groq = createGroq({ apiKey: process.env.GROQ_API_KEY })
 
   const { text } = await generateText({
-    model: groq('llama-3.1-8b-instant'),
+    model: groq('openai/gpt-oss-20b'),
     system: `You are a technical content editor. You receive a raw auto-generated YouTube transcript and return a JSON object with:
 - "formatted": the transcript cleaned up into readable paragraphs with chapter markers where topic shifts are detected
 - "summary": a 2-3 sentence summary of the content

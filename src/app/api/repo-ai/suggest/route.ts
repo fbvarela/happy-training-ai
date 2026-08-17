@@ -11,7 +11,7 @@ import { eq, desc } from 'drizzle-orm'
 
 export const maxDuration = 60
 
-// llama-3.1-8b-instant has a hard ~6,000 token per-request ceiling — a full
+// The model has a hard per-request token ceiling — a full
 // file tree (up to 400 paths) plus 8 full key files easily blows past it
 // ("Request too large ... Requested 6984"). Cap the combined context text
 // well under that, leaving headroom for the larger structured output
@@ -104,7 +104,7 @@ ${context.keyFiles.map((f) => `--- ${f.path} ---\n${f.content}`).join('\n\n')}`.
 
     const groq = createGroq({ apiKey: process.env.GROQ_API_KEY })
     const result = await generateText({
-      model: groq('llama-3.1-8b-instant'),
+      model: groq('openai/gpt-oss-20b'),
       maxOutputTokens: 1600,
       system: `You are a technical mentor reviewing a codebase to suggest what its author should study next. Given a file tree and excerpts from key files, suggest 3-5 specific topics they likely need but probably haven't formally learned. For each, produce a full learning resource, not just a pointer: a title, a short explanation (2-4 sentences) of the concept and why the code suggests they need it, and a minimal runnable code example (under 20 lines) demonstrating it.
 

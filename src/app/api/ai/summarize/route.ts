@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
   const text = transcript ?? content ?? ''
 
   const result = streamText({
-    model: groq('llama-3.1-8b-instant'),
+    model: groq('openai/gpt-oss-20b'),
     system,
     prompt: `Resource: "${title}" (${type ?? 'resource'})\n\n${text.slice(0, 12000)}`,
   })
