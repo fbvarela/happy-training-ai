@@ -284,7 +284,7 @@ function MainPanel({
   }
 
   return (
-    <div>
+    <div className="course-lesson-panel">
       {/* Header */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '18px' }}>
         <TypeGlyph type={element.type} size={17} style={{ color: 'var(--bark)', opacity: 0.55, flexShrink: 0 }} />
@@ -395,9 +395,9 @@ function MainPanel({
 
       {/* Transcribe + transcript */}
       {element.type !== 'image' && element.type !== 'snippet' && (
-        <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div className="resource-actions-stack" style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
           {element.type === 'video' && (element.isResource || element.id > 0) && (
-            <div>
+            <div className="transcribe-control">
               {element.isResource
                 ? <TranscribeButton resourceId={element.resourceId} status={element.transcriptStatus} />
                 : <TranscribeButton resourceId={element.id} status={element.transcriptStatus} isElement />}
@@ -408,17 +408,19 @@ function MainPanel({
             : <TranscriptBlock transcript={element.transcript} elementId={element.id} inline onSaved={(t) => onUpdate({ ...element, transcript: t })} />}
           {element.transcript && (
             <>
-              <ExplainTranscript
-                transcript={element.transcript}
-                resourceId={resourceId}
-                onSaved={(el) => onElementAdded?.({ ...el, extractedHtml: null })}
-              />
-              <AskAboutContent
-                content={element.transcript}
-                contentLabel="this transcript"
-                resourceId={resourceId}
-                onSaved={(el) => onElementAdded?.({ ...el, extractedHtml: null })}
-              />
+              <div className="resource-ai-actions">
+                <ExplainTranscript
+                  transcript={element.transcript}
+                  resourceId={resourceId}
+                  onSaved={(el) => onElementAdded?.({ ...el, extractedHtml: null })}
+                />
+                <AskAboutContent
+                  content={element.transcript}
+                  contentLabel="this transcript"
+                  resourceId={resourceId}
+                  onSaved={(el) => onElementAdded?.({ ...el, extractedHtml: null })}
+                />
+              </div>
             </>
           )}
         </div>
@@ -778,9 +780,9 @@ export function ResourceWorkspace({ resourceId, initialElements, sidebarFooter, 
   }
 
   return (
-    <div className="resource-detail-layout">
+    <div className="resource-detail-layout resource-course-layout">
       {/* Main: primary resource, plus any expanded complements stacked below */}
-      <div>
+      <div className="course-lesson">
         {main ? (
           <>
             <MainPanel
@@ -792,7 +794,7 @@ export function ResourceWorkspace({ resourceId, initialElements, sidebarFooter, 
               onElementAdded={handleElementAdded}
             />
             {expanded.map(el => (
-              <div key={el.id} style={{ marginTop: '32px' }}>
+              <div key={el.id} className="course-expanded-material" style={{ marginTop: '32px' }}>
                 <hr style={{ border: 'none', borderTop: '1px solid var(--line)', margin: '0 0 32px' }} />
                 <MainPanel
                   element={el}
@@ -813,11 +815,11 @@ export function ResourceWorkspace({ resourceId, initialElements, sidebarFooter, 
       </div>
 
       {/* Sidebar: complements + add + metadata */}
-      <aside className="resource-detail-sidebar">
+      <aside className="resource-detail-sidebar course-materials">
         {secondary.length > 0 && (
           <div>
             <div style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '10px' }}>
-              Complements · {secondary.length}
+              Course materials · {secondary.length}
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {secondary.map(el => (

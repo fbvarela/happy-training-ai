@@ -146,11 +146,11 @@ export function TranscriptBlock({ transcript: initial, resourceId, elementId, in
   }
 
   return (
-    <div className={inline ? undefined : 'reader-transcript-section'}>
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: collapsed ? 0 : '12px', flexWrap: 'wrap', gap: '8px' }}>
+    <div className={inline ? 'transcript-block transcript-block-inline' : 'reader-transcript-section transcript-block'}>
+      <div className="transcript-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: collapsed ? 0 : '12px', flexWrap: 'wrap', gap: '8px' }}>
         <button
           onClick={() => { setCollapsed(c => !c); if (editing) setEditing(false) }}
-          className="btn btn-ghost btn-sm"
+          className="btn btn-ghost btn-sm transcript-toggle"
           style={{ fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.04em', color: 'var(--text-muted)', padding: '4px 0', gap: '5px' }}
         >
           {collapsed ? <ChevronDown size={13} /> : <ChevronUp size={13} />}
@@ -158,7 +158,7 @@ export function TranscriptBlock({ transcript: initial, resourceId, elementId, in
         </button>
 
         {!collapsed && (
-          <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <div className="transcript-actions" style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
 
             {confirmRewrite && !editing && (
               <>

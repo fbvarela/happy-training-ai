@@ -43,7 +43,7 @@ export function TranscribeButton({ resourceId, status, isElement }: TranscribeBu
     <button
       onClick={handleTranscribe}
       disabled={loading || isProcessing}
-      className={isDone ? 'btn btn-ghost btn-sm' : 'btn btn-leaf btn-sm'}
+      className={`${isDone ? 'btn btn-ghost' : 'btn btn-leaf'} resource-action resource-action-primary`}
     >
       {loading || isProcessing
         ? <Loader2 size={14} style={{ animation: 'spin 1s linear infinite' }} />
