@@ -320,14 +320,14 @@ function MainPanel({
         ) : (
           <>
             {onHide && (
-              <button onClick={onHide} className="btn btn-ghost btn-sm" style={{ padding: '4px 8px' }} title="Hide">
+              <button onClick={onHide} className="btn btn-ghost btn-sm course-action-hide" style={{ padding: '4px 8px' }} title="Hide">
                 <ChevronUp size={14} /> Hide
               </button>
             )}
-            <button onClick={() => setEditing(true)} className="btn btn-ghost btn-sm" style={{ padding: '4px 8px' }} title="Edit">
+            <button onClick={() => setEditing(true)} className="btn btn-ghost btn-sm course-action-edit" style={{ padding: '4px 8px' }} title="Edit" aria-label="Edit material">
               <Pencil size={14} />
             </button>
-            <button onClick={() => setConfirmDelete(true)} disabled={deleting} className="btn btn-danger btn-sm" style={{ padding: '4px 8px' }} title="Remove">
+            <button onClick={() => setConfirmDelete(true)} disabled={deleting} className="btn btn-danger btn-sm course-action-remove" style={{ padding: '4px 8px' }} title="Remove" aria-label="Remove material">
               <Trash2 size={14} />
             </button>
           </>
@@ -475,10 +475,11 @@ function ComplementCard({
 
   return (
     <div
+      className="course-material-row"
       onClick={onToggle}
       role="button"
       tabIndex={0}
-      onKeyDown={e => { if (e.key === 'Enter') onToggle() }}
+      onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onToggle() } }}
       onDragOver={e => { e.preventDefault(); onDragOver() }}
       onDrop={e => { e.preventDefault(); onDrop() }}
       title={expanded ? 'Shown below — click to hide' : 'Click to show below the main resource'}
@@ -529,6 +530,7 @@ function ComplementCard({
             className="btn btn-danger btn-sm"
             style={{ padding: '3px 7px', flexShrink: 0 }}
             title="Remove"
+            aria-label="Remove course material"
           >
             <Trash2 size={12} />
           </button>

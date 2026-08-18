@@ -760,7 +760,7 @@
     letter-spacing: 0.1em !important;
   }
 
-  .resource-detail-sidebar [role="button"] {
+  .course-material-row {
     min-height: 56px;
     position: relative;
     border: 1px solid var(--line) !important;
@@ -769,15 +769,16 @@
     transition: border-color 0.16s, background 0.16s, transform 0.16s;
   }
 
-  .resource-detail-sidebar [role="button"]:hover,
-  .resource-detail-sidebar [role="button"]:focus-visible {
+  .course-material-row:hover,
+  .course-material-row:focus-visible {
     border-color: var(--sun) !important;
     background: var(--cream) !important;
     transform: translateY(-1px);
-    outline: none;
+    outline: 3px solid color-mix(in srgb, var(--sun) 45%, transparent);
+    outline-offset: 2px;
   }
 
-  .resource-detail-sidebar [role="button"]::after {
+  .course-material-row::after {
     content: "Click to show or hide";
     position: absolute;
     right: 38px;
@@ -790,12 +791,12 @@
     pointer-events: none;
   }
 
-  .resource-detail-sidebar [role="button"]:hover::after,
-  .resource-detail-sidebar [role="button"]:focus-visible::after {
+  .course-material-row:hover::after,
+  .course-material-row:focus-visible::after {
     opacity: 0.8;
   }
 
-  .resource-detail-sidebar [role="button"] .btn-danger {
+  .course-material-row .btn-danger {
     width: 28px;
     height: 28px;
     min-height: 28px;
@@ -804,8 +805,8 @@
     opacity: 0.45;
   }
 
-  .resource-detail-sidebar [role="button"] .btn-danger:hover,
-  .resource-detail-sidebar [role="button"] .btn-danger:focus-visible {
+  .course-material-row .btn-danger:hover,
+  .course-material-row .btn-danger:focus-visible {
     opacity: 1;
   }
 
@@ -822,8 +823,8 @@
     color: var(--text-muted);
   }
 
-  .resource-detail-layout button[title="Edit"],
-  .resource-detail-layout button[title="Remove"] {
+  .resource-detail-layout .course-action-edit,
+  .resource-detail-layout .course-action-remove {
     width: 32px;
     height: 32px;
     min-height: 32px;
@@ -832,12 +833,12 @@
     border-radius: 8px;
   }
 
-  .resource-detail-layout button[title="Remove"] {
+  .resource-detail-layout .course-action-remove {
     opacity: 0.55;
   }
 
-  .resource-detail-layout button[title="Remove"]:hover,
-  .resource-detail-layout button[title="Remove"]:focus-visible {
+  .resource-detail-layout .course-action-remove:hover,
+  .resource-detail-layout .course-action-remove:focus-visible {
     opacity: 1;
   }
 
@@ -1049,15 +1050,15 @@
     justify-content: center;
   }
 
-  .resource-detail-layout div[style*="margin-top: 16px"] {
+  .resource-actions-stack {
     gap: 8px !important;
   }
 
-  .resource-detail-layout div[style*="margin-top: 16px"] > div[style*="margin-top: 20px"] {
+  .resource-actions-stack > .ai-action {
     margin-top: 0 !important;
   }
 
-  .resource-detail-layout button[style*="padding: 4px 0"] {
+  .resource-detail-layout .transcript-toggle {
     padding: 7px 12px !important;
     border-color: var(--bark-light) !important;
     background: var(--cream) !important;
@@ -1065,7 +1066,7 @@
     box-shadow: none !important;
   }
 
-  .resource-detail-layout div[style*="margin-top: 16px"] > div:first-child > .btn {
+  .resource-actions-stack > .transcribe-control > .btn {
     align-self: flex-start;
   }
 
@@ -1137,7 +1138,7 @@
       order: 3;
     }
 
-    .resource-detail-sidebar [role="button"]::after {
+    .course-material-row::after {
       display: none;
     }
 
@@ -1165,7 +1166,7 @@
       line-height: 1.7;
     }
 
-    .resource-detail-sidebar [role="button"] {
+    .course-material-row {
       min-height: 60px;
     }
   }
