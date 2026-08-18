@@ -870,8 +870,8 @@
 
   .resource-detail-layout .reader-body p,
   .resource-detail-layout .tb-content p {
-    text-align: left;
-    hyphens: none;
+    text-align: justify;
+    hyphens: auto;
   }
 
   .resource-detail-layout .reader-body h1,
