@@ -110,15 +110,15 @@ export function AskAboutContent({ content, contentLabel, resourceId, defaultLang
   }
 
   return (
-    <div style={{ marginTop: '20px' }}>
+    <div className="ai-action" style={{ marginTop: '20px' }}>
       {!triggered ? (
-        <button onClick={() => setTriggered(true)} className="btn btn-ghost btn-sm">
+        <button onClick={() => setTriggered(true)} className="btn btn-ghost resource-action">
           <MessageCircleQuestion size={14} />
           Ask AI
         </button>
       ) : (
-        <div style={{ background: 'var(--cream)', borderRadius: '10px', padding: '14px 16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+        <div className="ai-panel" style={{ background: 'var(--cream)', borderRadius: '10px', padding: '14px 16px' }}>
+          <div className="ai-panel-header" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
             <Sparkles size={13} style={{ color: 'var(--leaf)' }} />
             <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', flex: 1 }}>
               Ask AI
@@ -140,7 +140,7 @@ export function AskAboutContent({ content, contentLabel, resourceId, defaultLang
                 {saved ? 'Saved' : saving ? 'Saving…' : 'Save as snippet'}
               </button>
             )}
-            <button onClick={hide} className="btn btn-ghost btn-sm" style={{ fontSize: '0.75rem', padding: '4px' }} aria-label="Close ask AI">
+            <button onClick={hide} className="btn btn-ghost btn-sm ai-panel-close" style={{ fontSize: '0.75rem', padding: '4px' }} aria-label="Close ask AI">
               <X size={13} />
             </button>
           </div>

@@ -67,7 +67,7 @@ export default async function ResourceDetailPage({ params }: { params: Promise<{
   const noteContentKind = resource.topics.some((t) => t.contentKind === 'code') ? 'code' : 'prose'
 
   return (
-    <div>
+    <div className="resource-course-page">
       <TopBar
         title={resource.title}
         description={resource.description ?? undefined}
@@ -82,7 +82,7 @@ export default async function ResourceDetailPage({ params }: { params: Promise<{
       />
 
       {/* Badges */}
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '20px' }}>
+      <div className="resource-course-meta" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '20px' }}>
         <span className="hf-badge" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
           <TypeIcon size={12} /> {resource.type}
         </span>
