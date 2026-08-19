@@ -1107,15 +1107,58 @@
   }
 
   @media (max-width: 767px) {
+    html, body {
+      overflow-x: hidden;
+    }
+
     .sidebar-nav    { display: none; }
     .nav-mobile-bar { display: flex; }
     .bottom-nav     { display: flex; }
     .app { padding-left: 0; padding-top: 56px; padding-bottom: 72px; }
-    .page { padding: 20px 16px; }
-    .page-title { font-size: 1.6rem; }
+    .page { padding: 20px 12px; }
+    .page-title { font-size: 1.35rem; }
 
-    .resource-detail-layout {
+    .resource-course-page .page-title {
+      font-size: 1.3rem;
+    }
+
+    .resource-detail-layout,
+    .resource-course-layout {
+      grid-template-columns: minmax(0, 1fr) !important;
       gap: 16px;
+      width: 100%;
+      min-width: 0;
+    }
+
+    .resource-detail-layout > *,
+    .course-lesson,
+    .course-lesson-panel,
+    .course-materials {
+      min-width: 0;
+      max-width: 100%;
+      box-sizing: border-box;
+    }
+
+    .course-lesson-panel,
+    .reader-body,
+    .tb-content {
+      overflow-wrap: anywhere;
+      word-break: break-word;
+    }
+
+    .reader-body pre,
+    .reader-body table,
+    .tb-content pre,
+    .tb-content table {
+      max-width: 100%;
+      overflow-x: auto;
+      display: block;
+    }
+
+    .resource-detail-layout iframe,
+    .resource-detail-layout video,
+    .resource-detail-layout img {
+      max-width: 100%;
     }
 
     .resource-detail-layout > :first-child {
