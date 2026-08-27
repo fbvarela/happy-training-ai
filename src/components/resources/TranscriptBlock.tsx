@@ -47,7 +47,7 @@ function sanitize(html: string) {
 export function TranscriptBlock({ transcript: initial, resourceId, elementId, inline, onSaved }: Props) {
   const [transcript, setTranscript] = useState(initial ?? '')
   const [collapsed, setCollapsed] = useState(!!initial)
-  const [editing, setEditing] = useState(!initial)
+  const [editing, setEditing] = useState(false)
   const [saving, setSaving] = useState(false)
   const [rewriting, setRewriting] = useState(false)
   const [confirmRewrite, setConfirmRewrite] = useState(false)
