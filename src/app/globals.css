@@ -976,6 +976,17 @@
     box-shadow: var(--shadow);
   }
 
+  .resource-ai-actions,
+  .resource-ai-actions .ai-action,
+  .ai-panel {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .ai-panel {
+    overflow-wrap: anywhere;
+  }
+
   .ai-panel-close {
     width: 30px;
     height: 30px;
