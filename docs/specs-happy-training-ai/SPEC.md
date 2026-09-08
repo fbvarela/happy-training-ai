@@ -59,8 +59,8 @@ Mirrors the Happy News AI transcription system, with an added readability rewrit
   1. Fetch video metadata (title, duration, thumbnail) via YouTube oEmbed
   2. Extract transcript via `youtube-transcript` package
   3. Store raw transcript with timestamps in DB
-  4. AI post-process: clean, paragraph-break, and summarize via Groq (`llama-3.3-70b-versatile`)
-- **Rewrite for reading:** Separate one-click action (`POST .../rewrite`) that runs a second Groq pass to further clean disfluencies, add ALL-CAPS section headings, and break into readable paragraphs. Uses chunked processing (8 k chars/chunk) with a summarization guard (rejects output shorter than 60 % of input). Ported from Happy News AI `rewriteForReading.ts` but using Groq instead of Cohere.
+  4. Transcription is **literal** — the verbatim captions are stored as-is (no summarizing, restructuring, or chapter-marking)
+- **Rewrite for reading:** Separate one-click action (`POST .../rewrite`) that runs a second Groq pass to make the literal transcript more legible: removes disfluencies and babbling ("um", "uh", stutters, false starts), drops duplicate sentences from caption overlap, adds ALL-CAPS section headings, and breaks into readable paragraphs — **without summarizing or omitting any content**. Uses chunked processing (8 k chars/chunk) with a summarization guard (rejects output shorter than 60 % of input). Ported from Happy News AI `rewriteForReading.ts` but using Groq instead of Cohere.
 - **Edit transcript:** `TranscriptBlock` client component in the reader and resource detail page — click Edit → textarea, Save saves via PATCH, Cancel discards.
 - **Output:** Readable, formatted transcript rendered in the reader + resource detail
 - **UI:** `TranscriptBlock` shows Rewrite and Edit buttons above the transcript text
@@ -106,7 +106,7 @@ First-class support for code, distinct from full resource pages.
 
 | Task | Provider | Model |
 |---|---|---|
-| Transcript post-processing | Groq | `llama-3.3-70b-versatile` |
+| Transcript rewrite (readability, no summarizing) | Groq | `openai/gpt-oss-20b` |
 | Code snippet explanation / improvement | Groq | `llama-3.3-70b-versatile` |
 | Resource Q&A | Groq | `llama-3.3-70b-versatile` |
 | Semantic resource search | Cohere | `embed-multilingual-v3.0` |
@@ -258,3 +258,7 @@ A resource is a **learning unit** — its `resource_elements` hold the actual me
 ## 9. Implementation Plan
 
 See `docs/specs-happy-training-ai/PLAN.md` for the step-by-step build plan with file structure and commands.
+
+### issues
+- The youtube transcription should be literal, not a summary and the rewrite option should be a rewriting to be more legible, but not summarizing but
+removing things like babbling
