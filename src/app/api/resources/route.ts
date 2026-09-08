@@ -11,6 +11,7 @@ export async function GET(req: NextRequest) {
     topicId: topicId ? Number(topicId) : undefined,
     type: type ?? undefined,
     search: search ?? undefined,
+    topicSearch: true,
   })
   return NextResponse.json(list)
 }

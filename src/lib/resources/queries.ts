@@ -1,4 +1,4 @@
-import { and, desc, eq, inArray, isNull, like, or } from 'drizzle-orm'
+import { and, desc, eq, inArray, isNull, like, or, sql } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { resources, resourceTopics, topics, type NewResource, type Resource, type Topic } from '@/lib/db/schema'
 
@@ -30,8 +30,9 @@ export async function getResources(opts?: {
   topicId?: number
   type?: string
   search?: string
+  topicSearch?: boolean
 }): Promise<ResourceWithTopics[]> {
-  const topicFilteredIds = opts?.topicId
+  const topicIds = opts?.topicId
     ? await db
         .select({ resourceId: resourceTopics.resourceId })
         .from(resourceTopics)
@@ -39,7 +40,38 @@ export async function getResources(opts?: {
         .then((rows) => rows.map((r) => r.resourceId))
     : null
 
-  if (topicFilteredIds && topicFilteredIds.length === 0) return []
+  if (topicIds && topicIds.length === 0) return []
+
+  const search = opts?.search
+  const searchParam = search ? `%${search}%` : null
+
+  if (search && opts?.topicSearch) {
+    const rawRows = (await db.execute(sql`
+      select distinct r.id, r.type, r.title, r.description, r.url, r.file_url,
+             r.thumbnail_url, r.tags, r.transcript, r.transcript_status,
+             r.ai_summary, r.created_at, r.updated_at, r.deleted_at
+      from resources r
+      left join resource_topics rt on rt.resource_id = r.id
+      left join topics t on t.id = rt.topic_id
+      where r.deleted_at is null
+        and (
+          r.title ilike ${searchParam}
+          or r.description ilike ${searchParam}
+          or t.name ilike ${searchParam}
+        )
+        ${topicIds ? sql`and r.id in (${sql.join(topicIds, sql`, `)})` : sql``}
+        ${opts?.type ? sql`and r.type = ${opts.type}` : sql``}
+      order by r.created_at desc
+    `)).rows
+    const resourcesRows = (rawRows as unknown as Resource[]).map((r) => ({
+      ...r,
+      id: typeof r.id === 'string' ? Number(r.id) : r.id,
+      createdAt: new Date(r.createdAt),
+      updatedAt: new Date(r.updatedAt),
+      deletedAt: r.deletedAt ? new Date(r.deletedAt) : null,
+    }))
+    return attachTopics(resourcesRows)
+  }
 
   const rows = await db
     .select()
@@ -47,12 +79,12 @@ export async function getResources(opts?: {
     .where(
       and(
         isNull(resources.deletedAt),
-        topicFilteredIds ? inArray(resources.id, topicFilteredIds) : undefined,
+        topicIds ? inArray(resources.id, topicIds) : undefined,
         opts?.type ? eq(resources.type, opts.type as Resource['type']) : undefined,
-        opts?.search
+        search && !opts?.topicSearch
           ? or(
-              like(resources.title, `%${opts.search}%`),
-              like(resources.description, `%${opts.search}%`)
+              like(resources.title, searchParam!),
+              like(resources.description, searchParam!)
             )
           : undefined
       )
