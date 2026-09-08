@@ -2,11 +2,12 @@ import Link from 'next/link'
 import { Plus } from 'lucide-react'
 import { TopBar } from '@/components/layout/TopBar'
 import { getResources } from '@/lib/resources/queries'
+import { getTopics } from '@/lib/topics/queries'
 import { getResourceIcon } from '@/lib/resources/icons'
 import { getTopicIcon } from '@/lib/topics/icons'
-import { getTopics } from '@/lib/topics/queries'
 import { SortSelect } from '@/components/resources/SortSelect'
 import { TopicFilter } from '@/components/resources/TopicFilter'
+import { ResourceSearch } from '@/components/resources/ResourceSearch'
 import type { ResourceWithTopics } from '@/lib/resources/queries'
 
 function sortResources(resources: ResourceWithTopics[], sort: string): ResourceWithTopics[] {
@@ -23,19 +24,18 @@ function sortResources(resources: ResourceWithTopics[], sort: string): ResourceW
       return topicA.localeCompare(topicB)
     })
   }
-  // date-desc is the default order already returned by getResources()
   return sorted
 }
 
 export default async function ResourcesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ sort?: string; topic?: string }>
+  searchParams: Promise<{ sort?: string; topic?: string; search?: string }>
 }) {
-  const { sort = 'date-desc', topic } = await searchParams
+  const { sort = 'date-desc', topic, search } = await searchParams
   const topicId = topic ? Number(topic) : undefined
   const [resources, topics] = await Promise.all([
-    getResources({ topicId }).then((r) => sortResources(r, sort)),
+    getResources({ topicId, search, topicSearch: true }).then((r) => sortResources(r, sort)),
     getTopics(),
   ])
 
@@ -54,14 +54,17 @@ export default async function ResourcesPage({
 
       {resources.length === 0 ? (
         <div className="empty-state">
-          <p>No resources yet.</p>
+          <p>{search ? 'No resources match your search.' : 'No resources yet.'}</p>
           <Link href="/resources/new" className="btn btn-ghost btn-sm">Add your first resource</Link>
         </div>
       ) : (
         <>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', gap: '12px' }}>
-            <TopicFilter current={topicId} topics={topics} />
-            <SortSelect current={sort} />
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <ResourceSearch current={search ?? ''} />
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexShrink: 0 }}>
+              <TopicFilter current={topicId} topics={topics} />
+              <SortSelect current={sort} />
+            </div>
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             {resources.map((r) => {
