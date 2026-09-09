@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server'
 import { streamText } from 'ai'
-import { createGroq } from '@ai-sdk/groq'
+import { createCohere } from '@ai-sdk/cohere'
 import { sql } from 'drizzle-orm'
 import { db } from '@/lib/db'
 import { getCurrentUser } from '@/lib/auth/session'
@@ -30,11 +30,11 @@ export async function POST(req: NextRequest) {
   `)
   const matches = searchResult.rows as unknown as { path: string; content: string }[]
 
-  const groq = createGroq({ apiKey: process.env.GROQ_API_KEY })
+  const cohere = createCohere({ apiKey: process.env.COHERE_API_KEY })
 
   if (matches.length === 0) {
     const result = streamText({
-      model: groq('openai/gpt-oss-20b'),
+      model: cohere('command-a-03-2025'),
       system: 'You answer questions about a repository, but no relevant indexed files were found for this question.',
       prompt: `The user asked: "${question}"\n\nNo matching files were found in the index. Tell them plainly that you couldn't find relevant files for this question in the synced repo, and suggest they try different keywords or re-sync the repo.`,
     })
@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
   }
 
   const result = streamText({
-    model: groq('openai/gpt-oss-20b'),
+    model: cohere('command-a-03-2025'),
     system: `You answer questions about the repository "${repo.fullName}" using only the provided file excerpts. Every factual claim must cite the file path it came from (e.g. "in src/foo.ts"). If the excerpts don't contain the answer, say so explicitly rather than guessing.`,
     prompt: `Question: ${question}
 

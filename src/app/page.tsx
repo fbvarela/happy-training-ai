@@ -119,7 +119,7 @@ export default async function HomePage() {
           </Link>
         </div>
         <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', margin: 0 }}>
-          Topic synthesis, related resource suggestions, and snippet explanations — powered by Groq and Cohere.
+          Topic synthesis, related resource suggestions, and snippet explanations — powered by Cohere.
         </p>
       </div>
     </div>

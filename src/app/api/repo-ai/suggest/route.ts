@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { generateText } from 'ai'
-import { createGroq } from '@ai-sdk/groq'
+import { createCohere } from '@ai-sdk/cohere'
 import { getCurrentUser } from '@/lib/auth/session'
 import { getConnectedRepoById } from '@/lib/repos/queries'
 import { getOctokitForUser } from '@/lib/github/client'
@@ -102,9 +102,9 @@ ${context.fileTree.join('\n')}
 Key files:
 ${context.keyFiles.map((f) => `--- ${f.path} ---\n${f.content}`).join('\n\n')}`.slice(0, MAX_CONTEXT_CHARS)
 
-    const groq = createGroq({ apiKey: process.env.GROQ_API_KEY })
+    const cohere = createCohere({ apiKey: process.env.COHERE_API_KEY })
     const result = await generateText({
-      model: groq('openai/gpt-oss-20b'),
+      model: cohere('command-a-03-2025'),
       maxOutputTokens: 1600,
       system: `You are a technical mentor reviewing a codebase to suggest what its author should study next. Given a file tree and excerpts from key files, suggest 3-5 specific topics they likely need but probably haven't formally learned. For each, produce a full learning resource, not just a pointer: a title, a short explanation (2-4 sentences) of the concept and why the code suggests they need it, and a minimal runnable code example (under 20 lines) demonstrating it.
 
@@ -121,7 +121,7 @@ Be concrete — name the library/pattern, not "learn more about databases". Use 
     })
     text = result.text
   } catch (err) {
-    console.error(`[repo-ai/suggest] Groq request failed for repo ${repo.fullName}:`, err)
+    console.error(`[repo-ai/suggest] Cohere request failed for repo ${repo.fullName}:`, err)
     const message = err instanceof Error ? err.message : String(err)
     return NextResponse.json({ error: `AI request failed: ${message}` }, { status: 502 })
   }
