@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import type { ReactNode } from 'react'
 import { usePathname } from 'next/navigation'
-import { BookOpen, Brain, Code, GitBranch, GraduationCap, Home, LayoutList } from 'lucide-react'
+import { BookOpen, Brain, Code, GitBranch, GraduationCap, Home, LayoutList, Settings } from 'lucide-react'
 import { ThemeToggleMini } from './ThemeToggle'
 
 const navItems = [
@@ -12,6 +12,7 @@ const navItems = [
   { href: '/resources', label: 'Resources', icon: BookOpen },
   { href: '/snippets', label: 'Notes', icon: Code },
   { href: '/ai', label: 'AI', icon: Brain },
+  { href: '/settings', label: 'Settings', icon: Settings },
 ]
 
 interface BottomNavProps {

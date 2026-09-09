@@ -1,12 +1,15 @@
 import { generateText } from 'ai'
-import { createGroq } from '@ai-sdk/groq'
+import { createCohere } from '@ai-sdk/cohere'
 import { stripHtml } from '@/lib/text/stripHtml'
 import { getSetting } from '@/lib/settings/queries'
 import { DEFAULT_REWRITE_TRANSCRIPT_PROMPT, REWRITE_TRANSCRIPT_PROMPT_KEY } from '@/lib/ai/rewriteTranscriptPrompt'
 
 const CHUNK_SIZE = 8_000
 const CHUNK_THRESHOLD = 9_000
-const SUMMARIZATION_GUARD_RATIO = 0.6
+// Since rewrite must now preserve the speaker's wording near-verbatim, keep
+// output close to the input length. If the model still condenses hard enough
+// to fall below this ratio, we trust the original over the AI.
+const SUMMARIZATION_GUARD_RATIO = 0.75
 
 function splitIntoChunks(text: string): string[] {
   const chunks: string[] = []
@@ -29,9 +32,9 @@ function splitIntoChunks(text: string): string[] {
 }
 
 async function rewriteChunk(chunk: string, systemPrompt: string): Promise<string> {
-  const groq = createGroq({ apiKey: process.env.GROQ_API_KEY })
+  const cohere = createCohere({ apiKey: process.env.COHERE_API_KEY })
   const { text } = await generateText({
-    model: groq('openai/gpt-oss-20b'),
+    model: cohere('command-a-03-2025'),
     system: systemPrompt,
     prompt: chunk,
     maxRetries: 5,

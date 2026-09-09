@@ -1,8 +1,8 @@
 import { generateText } from 'ai'
-import { createGroq } from '@ai-sdk/groq'
+import { createCohere } from '@ai-sdk/cohere'
 import { stripHtml } from '@/lib/text/stripHtml'
 
-// The model has a hard per-request ceiling (Groq TPM
+// The model has a hard per-request ceiling (TPM
 // limit applies per call, not just over time) — a full transcript sent in
 // one request fails outright with "Request too large". So for long
 // transcripts we chunk, take notes per chunk (small output, sequential to
@@ -13,8 +13,9 @@ const CHUNK_THRESHOLD = 9_000
 const MAX_TOTAL_CHARS = 100_000
 // Keeps the combined notes small enough that the final synthesis call
 // (notes + system prompt + its own maxOutputTokens) still fits under
-// the model's per-request token ceiling.
-const MAX_NOTES_CHARS = 6_000
+// the model's per-request token ceiling. Raised to reduce how much detail
+// is dropped when a long transcript is condensed into notes.
+const MAX_NOTES_CHARS = 12_000
 
 function splitIntoChunks(text: string): string[] {
   const chunks: string[] = []
@@ -37,12 +38,12 @@ function splitIntoChunks(text: string): string[] {
 }
 
 async function noteChunk(chunk: string): Promise<string> {
-  const groq = createGroq({ apiKey: process.env.GROQ_API_KEY })
+  const cohere = createCohere({ apiKey: process.env.COHERE_API_KEY })
   const { text } = await generateText({
-    model: groq('openai/gpt-oss-20b'),
-    maxOutputTokens: 350,
+    model: cohere('command-a-03-2025'),
+    maxOutputTokens: 600,
     maxRetries: 5,
-    system: `You are taking detailed notes on a section of a video/article transcript. List the key points, topics, technical terms, and any code/library/API names mentioned, as concise bullet points. Preserve specifics (names, numbers, technical terms) exactly — do not generalize them away.`,
+    system: `You are taking detailed notes on a section of a video/article transcript. List the key points, topics, technical terms, and any code/library/API names mentioned, as concise bullet points. Preserve specifics (names, numbers, technical terms, examples) exactly — do not generalize them away. Capture enough detail that a later reader could reconstruct the section without seeing the original.`,
     prompt: chunk,
   })
   return text.trim()
@@ -51,7 +52,7 @@ async function noteChunk(chunk: string): Promise<string> {
 /**
  * Reduces a raw (possibly HTML) transcript down to a compact set of
  * per-section notes suitable as input to a final "explain" prompt, staying
- * within Groq's per-request token ceiling regardless of transcript length.
+ * within the model's per-request token ceiling regardless of transcript length.
  */
 export async function buildExplanationContext(rawTranscript: string): Promise<string> {
   const text = stripHtml(rawTranscript).slice(0, MAX_TOTAL_CHARS)

@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server'
 import { streamText } from 'ai'
-import { createGroq } from '@ai-sdk/groq'
+import { createCohere } from '@ai-sdk/cohere'
 import { getSetting } from '@/lib/settings/queries'
 import { ASK_CONTENT_PROMPT_KEY, DEFAULT_ASK_CONTENT_PROMPT } from '@/lib/ai/askContentPrompt'
 
@@ -17,10 +17,10 @@ export async function POST(req: NextRequest) {
   if (!question?.trim()) return new Response('Missing question', { status: 400 })
 
   const system = (await getSetting(ASK_CONTENT_PROMPT_KEY)) || DEFAULT_ASK_CONTENT_PROMPT
-  const groq = createGroq({ apiKey: process.env.GROQ_API_KEY })
+  const cohere = createCohere({ apiKey: process.env.COHERE_API_KEY })
 
   const result = streamText({
-    model: groq('openai/gpt-oss-20b'),
+    model: cohere('command-a-03-2025'),
     maxOutputTokens: 1200,
     maxRetries: 5,
     system,

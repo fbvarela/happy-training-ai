@@ -16,14 +16,9 @@ export default function SettingsPage() {
           <h2 style={{ fontSize: '0.9rem', fontWeight: 700, marginBottom: '16px', color: 'var(--bark)' }}>AI API Keys</h2>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             <div className="field" style={{ margin: 0 }}>
-              <label className="input-label" htmlFor="groq">Groq API Key</label>
-              <input id="groq" className="hf-input" type="password" placeholder="gsk_..." disabled value="Set in .env.local" />
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>Used for transcription, snippet explain, and Q&amp;A.</p>
-            </div>
-            <div className="field" style={{ margin: 0 }}>
               <label className="input-label" htmlFor="cohere">Cohere API Key</label>
               <input id="cohere" className="hf-input" type="password" placeholder="..." disabled value="Set in .env.local" />
-              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>Used for semantic search and topic synthesis.</p>
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '4px' }}>Used for summarize, explain, rewrite, ask, topic synthesis, and repo suggestions.</p>
             </div>
           </div>
         </div>

@@ -74,10 +74,11 @@ There is no test suite / test runner configured in this project.
     three upload UIs (`ResourceWorkspace.tsx`, `PDFUpload.tsx`,
     `ElementsEditor.tsx`) use the direct-upload helper.
   - `image/compress.ts`, `text/stripHtml.ts` — small utilities.
-- **AI SDK usage**: Vercel AI SDK (`ai` package) with `@ai-sdk/groq` (chat/
-  summarize/explain, mostly `llama-3.1-8b-instant`) and `@ai-sdk/cohere`.
-  Gemini and YouTube Data API are called directly via `fetch`/`GOOGLE_API_KEY`
-  / `GEMINI_API_KEY` (not through the AI SDK). Streaming routes use
+- **AI SDK usage**: Vercel AI SDK (`ai` package) with `@ai-sdk/cohere` (chat/
+  summarize/explain/rewrite/ask/suggest, model `command-a-03-2025`) — Cohere is
+  the single provider for all AI SDK calls in this app. Gemini and YouTube Data
+  API are called directly via `fetch`/`GOOGLE_API_KEY` / `GEMINI_API_KEY` (not
+  through the AI SDK). Streaming routes use
   `streamText(...).toTextStreamResponse()`.
 - **Directory layout**:
   - `src/app/` — routes; API handlers under `src/app/api/**/route.ts`.
@@ -117,8 +118,7 @@ There is no test suite / test runner configured in this project.
 | `DATABASE_URL` | Neon Postgres connection string |
 | `ALLOWED_GITHUB_LOGIN` | Sole GitHub login permitted to sign in |
 | `AUTH_TOKEN_SECRET` | Key for encrypting stored GitHub access tokens |
-| `GROQ_API_KEY` | Groq (via `@ai-sdk/groq`) — summarize/explain/transcript formatting |
-| `COHERE_API_KEY` | Cohere (via `@ai-sdk/cohere`) |
+| `COHERE_API_KEY` | Cohere (via `@ai-sdk/cohere`) — all AI SDK calls: summarize/explain/rewrite/ask/repo AI |
 | `GEMINI_API_KEY` / `GOOGLE_API_KEY` | Gemini video-understanding fallback for transcription |
 | `GEMINI_VIDEO_MODEL` / `GEMINI_VIDEO_FALLBACKS` | Override Gemini model / fallback model list |
 | `YOUTUBE_API_KEY` | YouTube Data API (video metadata) |

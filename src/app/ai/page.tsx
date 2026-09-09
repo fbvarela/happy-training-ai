@@ -16,7 +16,7 @@ export default async function AIPage() {
     <div>
       <TopBar
         title="AI Suggestions"
-        description="Topic synthesis powered by Cohere · Snippet explanations powered by Groq"
+        description="Topic synthesis, explanations, and suggestions — powered by Cohere"
       />
 
       <div style={{ maxWidth: '680px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
@@ -48,7 +48,7 @@ export default async function AIPage() {
             Snippet Explanations
           </h2>
           <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '12px' }}>
-            Open any snippet and click <strong>Explain with AI</strong> to get a step-by-step walkthrough powered by Groq.
+            Open any snippet and click <strong>Explain with AI</strong> to get a step-by-step walkthrough powered by Cohere.
           </p>
           <Link href="/snippets" className="btn btn-ghost btn-sm">
             Go to snippets →
