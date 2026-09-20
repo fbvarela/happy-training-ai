@@ -10,25 +10,32 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 A personal web app for storing and organizing training material: videos, PDFs,
 articles, uploaded files, and code snippets, tagged under a hierarchical topic
-tree. Videos get auto-transcribed and AI-summarized; a separate "repo AI"
-feature connects a GitHub repo so you can ask questions about its code and get
-AI-suggested snippet extractions. Single-user app gated by GitHub OAuth with an
-allow-list of exactly one login.
+tree. Videos get auto-transcribed (verbatim captions, no summarization) and
+AI-summarized; a separate "repo AI" feature connects a GitHub repo so you can
+ask questions about its code and get AI-suggested snippet extractions.
+Single-user app gated by GitHub OAuth with an allow-list of exactly one login.
 
 Part of the Happy Factory suite of ~23 sibling Next.js apps sharing brand/auth
-patterns (see `/Users/fernando/Documents/git-projects/ai/`).
+patterns (siblings live under a separate `ai/` checkout elsewhere; brand
+tokens and auth conventions are mirrored here).
+
+Design specs for features live in `docs/specs-happy-training-ai/` (SPEC.md,
+PLAN.md, plus per-feature specs). Read the relevant spec before major changes.
 
 ## Quick Start / Commands
 
-```bash
-pnpm dev          # next dev
-pnpm build        # next build
-pnpm start        # next start
-pnpm lint         # eslint
+Package manager is **npm** (only `package-lock.json` exists; lockfiles are
+gitignored, so don't expect them committed).
 
-pnpm db:generate  # drizzle-kit generate (create migration from schema.ts)
-pnpm db:migrate   # drizzle-kit migrate
-pnpm db:studio    # drizzle-kit studio (browse the DB)
+```bash
+npm run dev          # next dev
+npm run build        # next build
+npm run start        # next start
+npm run lint         # eslint
+
+npm run db:generate  # drizzle-kit generate (create migration from schema.ts)
+npm run db:migrate   # drizzle-kit migrate
+npm run db:studio    # drizzle-kit studio (browse the DB)
 ```
 
 There is no test suite / test runner configured in this project.
@@ -48,14 +55,17 @@ There is no test suite / test runner configured in this project.
   `NextResponse.json(...)`.
 - **Key domain modules** (`src/lib/`):
   - `db/` — Drizzle schema + client.
-  - `resources/`, `topics/`, `snippets/`, `settings/` — query helpers per
-    domain, used by both server components and API routes.
-  - `resources/transcribe.ts` + `youtubeCaptions.ts` / `youtubeGemini.ts` —
-    YouTube transcript pipeline: tries caption scraping first, falls back to
-    Gemini video understanding, then Groq (`llama-3.1-8b-instant`) to
-    reformat/summarize.
-  - `ai/*Prompt.ts` — system prompts (explain, summarize, synthesize, rewrite
-    transcript) with DB-overridable defaults via the `settings` table.
+  - `resources/` — resource queries plus domain logic: `transcribe.ts`
+    (YouTube pipeline: caption scrape via `youtubeCaptions.ts`, falls back to
+    Gemini video understanding in `youtubeGemini.ts`, returns the **verbatim**
+    transcript — rewriting is a separate explicit action), `rewrite.ts`
+    (Cohere, chunked, near-verbatim-preserving), `articleExtract.ts`
+    (`@extractus/article-extractor`), `elementQueries.ts` (resource
+    sub-elements), `icons.ts`.
+  - `ai/*Prompt.ts` — system prompts with DB-overridable defaults via the
+    `settings` table: `askContentPrompt`, `explainCodePrompt`,
+    `explainTranscriptPrompt`, `rewriteTranscriptPrompt`, `summarizePrompt`,
+    `synthesizePrompt`. Each exports a `<NAME>_PROMPT_KEY` + default.
   - `github/` — `client.ts` (per-user Octokit via stored encrypted token),
     `repoSync.ts` (pulls repo files into `repo_files`), `repoContext.ts`
     (builds context for repo Q&A).
@@ -73,15 +83,20 @@ There is no test suite / test runner configured in this project.
     from the browser to R2, capped at 200MB (`validateDirectUpload`). All
     three upload UIs (`ResourceWorkspace.tsx`, `PDFUpload.tsx`,
     `ElementsEditor.tsx`) use the direct-upload helper.
-  - `image/compress.ts`, `text/stripHtml.ts` — small utilities.
+  - `image/compress.ts`, `text/stripHtml.ts`, `markdown/` — small utilities.
 - **AI SDK usage**: Vercel AI SDK (`ai` package) with `@ai-sdk/cohere` (chat/
   summarize/explain/rewrite/ask/suggest, model `command-a-03-2025`) — Cohere is
-  the single provider for all AI SDK calls in this app. Gemini and YouTube Data
-  API are called directly via `fetch`/`GOOGLE_API_KEY` / `GEMINI_API_KEY` (not
-  through the AI SDK). Streaming routes use
-  `streamText(...).toTextStreamResponse()`.
+  the only provider actually called in `src/` (`@ai-sdk/groq` is an unused
+  dependency). Gemini and YouTube Data API are called directly via `fetch`/
+  `GOOGLE_API_KEY` / `GEMINI_API_KEY` (not through the AI SDK). Streaming
+  routes use `streamText(...).toTextStreamResponse()`.
 - **Directory layout**:
   - `src/app/` — routes; API handlers under `src/app/api/**/route.ts`.
+    `src/app/ai/` is the "AI Suggestions" page (topic synthesis, explanations).
+  - `src/app/api/ai/` — `ask`, `explain`, `explain-transcript`, `summarize`,
+    `synthesize` (content AI). `src/app/api/repo-ai/` — `ask`, `suggest`,
+    `sync` (repo AI). `src/app/api/elements/*` and
+    `src/app/api/resources/[id]/elements/*` — resource sub-elements.
   - `src/components/{layout,ai,pdf,markdown,repos,resources,settings,
     snippets,topics,ui}/` — feature components + shadcn `ui/` primitives.
   - `src/lib/` — domain logic (see above).
@@ -97,7 +112,7 @@ There is no test suite / test runner configured in this project.
     user into the `users` table and encrypt/store their access token.
 - `src/middleware.ts` protects only `/repos/:path*`, `/api/repos/:path*`, and
   `/api/repo-ai/:path*` — redirects unauthenticated requests to `/login`.
-  **Other routes (resources, topics, snippets, settings, uploads) are not
+  **Other routes (resources, topics, snippets, settings, uploads, ai) are not
   gated by middleware** — treat this as a single-user/trusted-network app,
   not a multi-tenant one.
 - Access is restricted to one GitHub login via `ALLOWED_GITHUB_LOGIN` checked
@@ -162,10 +177,9 @@ There is no test suite / test runner configured in this project.
   resolve `@opennextjs/cloudflare` at build time on Vercel; it falls through
   to the S3-compatible path there.
 - Only `/repos`, `/api/repos`, `/api/repo-ai` are behind auth middleware —
-  most CRUD routes (resources/topics/snippets/settings/uploads) have no
+  most CRUD routes (resources/topics/snippets/settings/uploads/ai) have no
   session check. Don't assume auth is enforced app-wide when adding routes.
-- `SnippetForm.tsx` currently uses an inline `style={{ display: 'grid',
-  gridTemplateColumns: ... }}` — inconsistent with the Happy Factory
-  convention (elsewhere in the suite) of using a shared `.card-grid` CSS
-  class instead of inline grid templates for mobile-safety. No `.card-grid`
-  class exists yet in this app's `globals.css`.
+- YouTube transcription is deliberately **literal** (verbatim words, no
+  summaries/chapters) — recent change. Rewriting/summarizing is a separate
+  user-triggered action; don't "helpfully" make the transcript more legible in
+  the transcribe step.

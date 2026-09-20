@@ -320,8 +320,8 @@ function MainPanel({
         ) : (
           <>
             {onHide && (
-              <button onClick={onHide} className="btn btn-ghost btn-sm course-action-hide" style={{ padding: '4px 8px' }} title="Hide">
-                <ChevronUp size={14} /> Hide
+              <button onClick={onHide} className="btn btn-ghost btn-sm btn-icon course-action-hide" title="Hide" aria-label="Hide material">
+                <ChevronUp size={14} />
               </button>
             )}
             <button onClick={() => setEditing(true)} className="btn btn-ghost btn-sm course-action-edit" style={{ padding: '4px 8px' }} title="Edit" aria-label="Edit material">
@@ -727,7 +727,18 @@ export function ResourceWorkspace({ resourceId, initialElements, sidebarFooter, 
   const expanded = secondary.filter(el => expandedIds.includes(el.id))
 
   function toggleExpanded(id: number) {
-    setExpandedIds(prev => prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id])
+    const isExpanded = expandedIds.includes(id)
+    if (isExpanded) {
+      setExpandedIds(prev => prev.filter(i => i !== id))
+      return
+    }
+    setExpandedIds(prev => [...prev, id])
+    // The expanded panel renders below the main resource, which can be very
+    // tall (long video/article/transcript), so it would land far below the
+    // fold and look like "nothing happened". Scroll it into view.
+    setTimeout(() => {
+      document.getElementById(`course-material-${id}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }, 0)
   }
 
   function handleUpdate(updated: ElementWithContent) {
@@ -796,7 +807,7 @@ export function ResourceWorkspace({ resourceId, initialElements, sidebarFooter, 
               onElementAdded={handleElementAdded}
             />
             {expanded.map(el => (
-              <div key={el.id} className="course-expanded-material" style={{ marginTop: '32px' }}>
+              <div key={el.id} id={`course-material-${el.id}`} className="course-expanded-material" style={{ marginTop: '32px' }}>
                 <hr style={{ border: 'none', borderTop: '1px solid var(--line)', margin: '0 0 32px' }} />
                 <MainPanel
                   element={el}

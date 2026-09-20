@@ -8,7 +8,7 @@ import { ThemeToggle } from './ThemeToggle'
 
 const navItems = [
   { href: '/', label: 'Home', icon: Home },
-  { href: '/topics', label: 'Topics', icon: LayoutList },
+  { href: '/topics', label: 'Courses', icon: LayoutList },
   { href: '/resources', label: 'Resources', icon: BookOpen },
   { href: '/snippets', label: 'Notes', icon: Code },
   { href: '/ai', label: 'AI', icon: Brain },
