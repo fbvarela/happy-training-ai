@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { Pencil, Plus } from 'lucide-react'
 import { TopBar } from '@/components/layout/TopBar'
-import { DeleteTopicButton } from '@/components/topics/DeleteTopicButton'
+import { ConfirmDeleteButton } from '@/components/ui/ConfirmDeleteButton'
 import { getTopicById } from '@/lib/topics/queries'
 import { getTopicIcon } from '@/lib/topics/icons'
 import { getResourceIcon as getResIcon } from '@/lib/resources/icons'
@@ -16,6 +16,8 @@ export default async function TopicDetailPage({ params }: { params: Promise<{ id
   const TopicIcon = getTopicIcon(topic.icon)
 
   const topicResources = await getResourcesByTopicId(Number(id))
+  const completedCount = topicResources.filter((r) => r.transcriptStatus === 'done').length
+  const progress = topicResources.length > 0 ? Math.round((completedCount / topicResources.length) * 100) : 0
 
   return (
     <div>
@@ -24,11 +26,18 @@ export default async function TopicDetailPage({ params }: { params: Promise<{ id
         description={topic.description ?? undefined}
         actions={
           <div style={{ display: 'flex', gap: '8px' }}>
-            <Link href={`/topics/${topic.id}/edit`} className="btn btn-ghost btn-sm">
-              <Pencil size={15} />
-              Edit
+            <Link href={`/topics/${topic.id}/edit`} className="btn btn-ghost btn-sm btn-icon" title="Edit topic" aria-label="Edit topic">
+              <Pencil size={14} />
             </Link>
-            <DeleteTopicButton id={topic.id} />
+            <ConfirmDeleteButton
+              id={topic.id}
+              endpoint="/api/topics"
+              redirectTo="/topics"
+              confirmMessage="Resources won't be deleted."
+              confirmLabel="Yes, delete"
+              successMessage="Topic deleted"
+              errorMessage="Failed to delete topic"
+            />
           </div>
         }
       />
@@ -50,15 +59,26 @@ export default async function TopicDetailPage({ params }: { params: Promise<{ id
           <TopicIcon size={18} />
         </span>
         <span style={{ fontSize: '0.88rem', color: 'var(--text-muted)' }}>
-          {topicResources.length} resource{topicResources.length !== 1 ? 's' : ''}
+          {topicResources.length} material{topicResources.length !== 1 ? 's' : ''}
         </span>
       </div>
 
+      {topicResources.length > 0 && (
+        <div className="course-progress" style={{ marginBottom: '20px', maxWidth: '360px' }}>
+          <div className="course-progress-track">
+            <div className="course-progress-fill" style={{ width: `${progress}%` }} />
+          </div>
+          <div className="course-progress-label">
+            {completedCount} of {topicResources.length} material{topicResources.length !== 1 ? 's' : ''} covered — {progress}%
+          </div>
+        </div>
+      )}
+
       {topicResources.length === 0 ? (
         <div className="empty-state">
-          <p>No resources in this topic yet.</p>
+          <p>No materials in this course yet.</p>
           <Link href={`/resources/new?topicId=${topic.id}`} className="btn btn-ghost btn-sm">
-            Add a resource
+            Add a material
           </Link>
         </div>
       ) : (
@@ -97,7 +117,7 @@ export default async function TopicDetailPage({ params }: { params: Promise<{ id
       <div style={{ marginTop: '24px' }}>
         <Link href={`/resources/new?topicId=${topic.id}`} className="btn btn-ghost btn-sm">
           <Plus size={14} />
-          Add resource to topic
+          Add material to this course
         </Link>
       </div>
     </div>

@@ -2,7 +2,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { ExternalLink, Pencil } from 'lucide-react'
 import { TopBar } from '@/components/layout/TopBar'
-import { DeleteResourceButton } from '@/components/resources/DeleteResourceButton'
+import { ConfirmDeleteButton } from '@/components/ui/ConfirmDeleteButton'
 import { ResourceWorkspace } from '@/components/resources/ResourceWorkspace'
 import { getResourceById } from '@/lib/resources/queries'
 import { getElementsByResourceId } from '@/lib/resources/elementQueries'
@@ -73,10 +73,18 @@ export default async function ResourceDetailPage({ params }: { params: Promise<{
         description={resource.description ?? undefined}
         actions={
           <div style={{ display: 'flex', gap: '8px' }}>
-            <Link href={`/resources/${resource.id}/edit`} className="btn btn-ghost btn-sm">
-              <Pencil size={15} /> Edit
+            <Link href={`/resources/${resource.id}/edit`} className="btn btn-ghost btn-sm btn-icon" title="Edit resource" aria-label="Edit resource">
+              <Pencil size={14} />
             </Link>
-            <DeleteResourceButton id={resource.id} />
+            <ConfirmDeleteButton
+              id={resource.id}
+              endpoint="/api/resources"
+              redirectTo="/resources"
+              confirmMessage="Delete this resource?"
+              confirmLabel="Yes, delete"
+              successMessage="Resource deleted"
+              errorMessage="Failed to delete resource"
+            />
           </div>
         }
       />

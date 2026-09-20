@@ -398,12 +398,18 @@
   .hf-card-link {
     text-decoration: none;
     display: block;
+    border-radius: 14px;
   }
 
   .hf-card-link:hover .hf-card {
     border-color: var(--bark-light);
     box-shadow: var(--shadow-lg);
     transform: translateY(-2px);
+  }
+
+  .hf-card-link:focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--sun) 45%, transparent);
+    outline-offset: 2px;
   }
 
   /* ── List items ───────────────────────────────── */
@@ -429,6 +435,11 @@
     border-color: transparent;
   }
   .hf-list-item:hover + .hf-list-item { border-color: transparent; }
+
+  .hf-list-item:focus-visible {
+    outline: 3px solid color-mix(in srgb, var(--sun) 45%, transparent);
+    outline-offset: 2px;
+  }
 
   .hf-list-title {
     flex: 1;
@@ -498,12 +509,51 @@
 
   .btn-sm { min-height: 32px; padding: 6px 11px; font-size: 0.82rem; }
 
+  /* Icon-only action buttons — fixed square hit target, consistent across
+     every list/card so actions always sit at the same size (inline actions). */
+  .btn-icon {
+    width: 32px;
+    height: 32px;
+    min-height: 32px;
+    padding: 0;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
   .btn:disabled,
   .btn[aria-disabled="true"] {
     opacity: 0.4;
     cursor: not-allowed;
     transform: none !important;
     box-shadow: none !important;
+  }
+
+  /* ── Course progress ──────────────────────────── */
+
+  .course-progress {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .course-progress-track {
+    height: 6px;
+    border-radius: 99px;
+    background: var(--cream);
+    border: 1px solid var(--line);
+    overflow: hidden;
+  }
+
+  .course-progress-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, var(--leaf), var(--leaf-light));
+    transition: width 0.3s ease;
+  }
+
+  .course-progress-label {
+    font-size: 0.74rem;
+    color: var(--text-muted);
   }
 
   /* ── Badges ───────────────────────────────────── */
@@ -1026,6 +1076,10 @@
 
   .course-lesson-panel > .course-expanded-material {
     margin-top: 28px !important;
+  }
+
+  .course-expanded-material {
+    scroll-margin-top: 24px;
   }
 
   .course-expanded-material > hr {

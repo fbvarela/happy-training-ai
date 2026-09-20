@@ -13,18 +13,24 @@ export async function getTopicById(id: number): Promise<Topic | undefined> {
 
 export async function getTopicWithResourceCount() {
   const topicList = await db.select().from(topics).orderBy(topics.name)
-  const counts = await db
-    .select({ topicId: resourceTopics.topicId })
+  const rows = await db
+    .select({ topicId: resourceTopics.topicId, transcriptStatus: resources.transcriptStatus })
     .from(resourceTopics)
     .innerJoin(resources, eq(resourceTopics.resourceId, resources.id))
     .where(isNull(resources.deletedAt))
 
   const countMap: Record<number, number> = {}
-  for (const { topicId } of counts) {
+  const completedMap: Record<number, number> = {}
+  for (const { topicId, transcriptStatus } of rows) {
     countMap[topicId] = (countMap[topicId] ?? 0) + 1
+    if (transcriptStatus === 'done') completedMap[topicId] = (completedMap[topicId] ?? 0) + 1
   }
 
-  return topicList.map((t) => ({ ...t, resourceCount: countMap[t.id] ?? 0 }))
+  return topicList.map((t) => ({
+    ...t,
+    resourceCount: countMap[t.id] ?? 0,
+    completedCount: completedMap[t.id] ?? 0,
+  }))
 }
 
 export async function createTopic(data: NewTopic): Promise<Topic> {

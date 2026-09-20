@@ -104,8 +104,8 @@ export function ReposWorkspace({ initialRepos }: { initialRepos: ConnectedRepo[]
                     </button>
                   </>
                 ) : (
-                  <button onClick={() => setConfirmDeleteId(repo.id)} className="btn btn-ghost btn-sm" style={{ padding: '4px 8px', fontSize: '0.75rem' }}>
-                    <Trash2 size={13} /> Disconnect
+                  <button onClick={() => setConfirmDeleteId(repo.id)} className="btn btn-ghost btn-sm btn-icon" style={{ fontSize: '0.75rem' }} title="Disconnect repository" aria-label="Disconnect repository">
+                    <Trash2 size={13} />
                   </button>
                 )}
               </div>

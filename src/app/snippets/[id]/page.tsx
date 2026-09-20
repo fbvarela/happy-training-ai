@@ -5,7 +5,7 @@ import { TopBar } from '@/components/layout/TopBar'
 import { CodeView } from '@/components/snippets/CodeView'
 import { ExplainSnippet } from '@/components/ai/ExplainSnippet'
 import { getSnippetById } from '@/lib/snippets/queries'
-import { DeleteSnippetButton } from '@/components/snippets/DeleteSnippetButton'
+import { ConfirmDeleteButton } from '@/components/ui/ConfirmDeleteButton'
 
 export default async function SnippetDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
@@ -19,11 +19,18 @@ export default async function SnippetDetailPage({ params }: { params: Promise<{ 
         description={snippet.description ?? undefined}
         actions={
           <div style={{ display: 'flex', gap: '8px' }}>
-            <Link href={`/snippets/${snippet.id}/edit`} className="btn btn-ghost btn-sm">
-              <Pencil size={15} />
-              Edit
+            <Link href={`/snippets/${snippet.id}/edit`} className="btn btn-ghost btn-sm btn-icon" title="Edit note" aria-label="Edit note">
+              <Pencil size={14} />
             </Link>
-            <DeleteSnippetButton id={snippet.id} />
+            <ConfirmDeleteButton
+              id={snippet.id}
+              endpoint="/api/snippets"
+              redirectTo="/snippets"
+              confirmMessage="Delete this note?"
+              confirmLabel="Yes, delete"
+              successMessage="Note deleted"
+              errorMessage="Failed to delete note"
+            />
           </div>
         }
       />

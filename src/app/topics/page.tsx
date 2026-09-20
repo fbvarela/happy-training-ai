@@ -10,25 +10,26 @@ export default async function TopicsPage() {
   return (
     <div>
       <TopBar
-        title="Topics"
-        description="Organize your resources by topic"
+        title="Courses"
+        description="Your courses and learning tracks — organized by topic"
         actions={
           <Link href="/topics/new" className="btn btn-primary btn-sm">
             <Plus size={15} />
-            New Topic
+            New Course
           </Link>
         }
       />
 
       {topics.length === 0 ? (
         <div className="empty-state">
-          <p>No topics yet.</p>
-          <Link href="/topics/new" className="btn btn-ghost btn-sm">Create your first topic</Link>
+          <p>No courses yet.</p>
+          <Link href="/topics/new" className="btn btn-ghost btn-sm">Create your first course</Link>
         </div>
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {topics.map((topic) => {
             const TopicIcon = getTopicIcon(topic.icon)
+            const progress = topic.resourceCount > 0 ? Math.round((topic.completedCount / topic.resourceCount) * 100) : 0
             return (
             <Link key={topic.id} href={`/topics/${topic.id}`} className="hf-card-link">
               <div className="hf-card" style={{ height: '100%' }}>
@@ -49,7 +50,7 @@ export default async function TopicsPage() {
                   >
                     <TopicIcon size={20} />
                   </span>
-                  <div style={{ minWidth: 0 }}>
+                  <div style={{ minWidth: 0, flex: 1 }}>
                     <div style={{ fontWeight: 600, color: 'var(--bark)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                       {topic.name}
                     </div>
@@ -58,8 +59,13 @@ export default async function TopicsPage() {
                         {topic.description}
                       </div>
                     )}
-                    <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '6px' }}>
-                      {topic.resourceCount} resource{topic.resourceCount !== 1 ? 's' : ''}
+                    <div className="course-progress" style={{ marginTop: '10px' }}>
+                      <div className="course-progress-track">
+                        <div className="course-progress-fill" style={{ width: `${progress}%` }} />
+                      </div>
+                      <div className="course-progress-label">
+                        {topic.completedCount} of {topic.resourceCount} material{topic.resourceCount !== 1 ? 's' : ''} covered
+                      </div>
                     </div>
                   </div>
                 </div>

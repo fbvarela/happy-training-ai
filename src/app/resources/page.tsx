@@ -42,20 +42,20 @@ export default async function ResourcesPage({
   return (
     <div>
       <TopBar
-        title="Resources"
-        description="Videos, PDFs, articles, and more"
+        title="Materials"
+        description="Course materials — videos, PDFs, articles, and more"
         actions={
           <Link href="/resources/new" className="btn btn-primary btn-sm">
             <Plus size={15} />
-            Add Resource
+            Add Material
           </Link>
         }
       />
 
       {resources.length === 0 ? (
         <div className="empty-state">
-          <p>{search ? 'No resources match your search.' : 'No resources yet.'}</p>
-          <Link href="/resources/new" className="btn btn-ghost btn-sm">Add your first resource</Link>
+          <p>{search ? 'No materials match your search.' : 'No materials yet.'}</p>
+          <Link href="/resources/new" className="btn btn-ghost btn-sm">Add your first material</Link>
         </div>
       ) : (
         <>
