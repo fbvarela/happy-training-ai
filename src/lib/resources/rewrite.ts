@@ -1,6 +1,7 @@
 import { generateText } from 'ai'
 import { createCohere } from '@ai-sdk/cohere'
 import { stripHtml } from '@/lib/text/stripHtml'
+import { toTranscriptHtml } from '@/lib/text/transcriptMarkdown'
 import { getSetting } from '@/lib/settings/queries'
 import { DEFAULT_REWRITE_TRANSCRIPT_PROMPT, REWRITE_TRANSCRIPT_PROMPT_KEY } from '@/lib/ai/rewriteTranscriptPrompt'
 
@@ -49,16 +50,22 @@ async function rewriteChunk(chunk: string, systemPrompt: string): Promise<string
 export async function rewriteTranscript(rawTranscript: string): Promise<string> {
   const systemPrompt = (await getSetting(REWRITE_TRANSCRIPT_PROMPT_KEY)) || DEFAULT_REWRITE_TRANSCRIPT_PROMPT
   const text = stripHtml(rawTranscript)
+  let rewritten: string
   if (text.length <= CHUNK_THRESHOLD) {
-    return rewriteChunk(text, systemPrompt)
+    rewritten = await rewriteChunk(text, systemPrompt)
+  } else {
+    const chunks = splitIntoChunks(text)
+    // The model has a tight tokens-per-minute quota — running chunks
+    // concurrently blows through it immediately (each chunk is a few thousand
+    // tokens), so process them one at a time instead of Promise.all.
+    const parts: string[] = []
+    for (const chunk of chunks) {
+      parts.push(await rewriteChunk(chunk, systemPrompt))
+    }
+    rewritten = parts.join('\n\n')
   }
-  const chunks = splitIntoChunks(text)
-  // The model has a tight tokens-per-minute quota — running chunks
-  // concurrently blows through it immediately (each chunk is a few thousand
-  // tokens), so process them one at a time instead of Promise.all.
-  const parts: string[] = []
-  for (const chunk of chunks) {
-    parts.push(await rewriteChunk(chunk, systemPrompt))
-  }
-  return parts.join('\n\n')
+  // The transcript renderer displays sanitized HTML (<p>/<h3>/<strong>/<em>),
+  // and LLM rewrites sometimes come back with markdown emphasis or headings
+  // glued to paragraphs. Normalize to that HTML subset so it renders cleanly.
+  return toTranscriptHtml(rewritten)
 }

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react'
 import { Pencil, Check, X, WandSparkles, Loader2, ChevronDown, ChevronUp, Bold, Italic } from 'lucide-react'
 import { toast } from 'sonner'
 import DOMPurify from 'isomorphic-dompurify'
+import { toTranscriptHtml } from '@/lib/text/transcriptMarkdown'
 
 interface Props {
   transcript: string | null
@@ -22,22 +23,6 @@ const FONT_SIZES: Record<string, string> = {
   normal: '',
   large: '1.15rem',
   huge: '1.5rem',
-}
-
-function escapeHtml(s: string) {
-  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-}
-
-function plainToHtml(text: string) {
-  return text
-    .split('\n\n')
-    .filter(Boolean)
-    .map((para) => {
-      const isHeading = para === para.toUpperCase() && para.length < 80 && /^[A-Z\s,:-]+$/.test(para)
-      const tag = isHeading ? 'h3' : 'p'
-      return `<${tag}>${escapeHtml(para)}</${tag}>`
-    })
-    .join('')
 }
 
 function sanitize(html: string) {
@@ -67,7 +52,7 @@ export function TranscriptBlock({ transcript: initial, resourceId, elementId, in
   useEffect(() => {
     if (editing && editorRef.current) {
       const source = transcript
-      editorRef.current.innerHTML = HTML_TAG_RE.test(source) ? sanitize(source) : plainToHtml(source)
+      editorRef.current.innerHTML = HTML_TAG_RE.test(source) ? sanitize(source) : toTranscriptHtml(source)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editing])
@@ -81,7 +66,7 @@ export function TranscriptBlock({ transcript: initial, resourceId, elementId, in
     e.preventDefault()
     const text = e.clipboardData.getData('text/plain')
     if (!text) return
-    document.execCommand('insertHTML', false, plainToHtml(text))
+    document.execCommand('insertHTML', false, toTranscriptHtml(text))
   }
 
   function applyFontSize(size: keyof typeof FONT_SIZES) {
@@ -275,14 +260,7 @@ export function TranscriptBlock({ transcript: initial, resourceId, elementId, in
           HTML_TAG_RE.test(transcript) ? (
             <div className="tb-content" dangerouslySetInnerHTML={{ __html: sanitize(transcript) }} />
           ) : (
-            <div className="tb-content">
-              {transcript.split('\n\n').filter(Boolean).map((para, i) => {
-                const isHeading = para === para.toUpperCase() && para.length < 80 && /^[A-Z\s,:-]+$/.test(para)
-                return isHeading
-                  ? <h3 key={i}>{para}</h3>
-                  : <p key={i}>{para}</p>
-              })}
-            </div>
+            <div className="tb-content" dangerouslySetInnerHTML={{ __html: sanitize(toTranscriptHtml(transcript)) }} />
           )
         ) : (
           <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
