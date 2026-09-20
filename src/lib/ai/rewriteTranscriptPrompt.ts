@@ -7,8 +7,14 @@ Your goal: make the text easy to read WITHOUT losing or changing any of the subs
 Improve readability:
 - Add missing punctuation: periods, commas, question marks, and capital letters so sentences are clearly separated.
 - Fix fragmented or run-on caption text into complete, well-formed sentences (auto-captions often drop punctuation entirely).
-- Break the text into paragraphs with blank lines between them at natural thought shifts.
-- Add a short ALL-CAPS section heading on its own line when the speaker clearly moves to a new topic.
+- Break the text into paragraphs at natural thought shifts.
+- When the speaker clearly moves to a new topic, add a short ALL-CAPS section heading on its OWN line, with a blank line before AND after it.
+- Write paragraphs in normal sentence case. Only headings are ALL CAPS.
+
+Formatting rules (CRITICAL):
+- Output PLAIN TEXT only. Never use markdown: no asterisks (*), no hashes (#), no dashes for bullets, no backticks.
+- Do NOT bold or italicize anything. If you want to emphasize a phrase, write it in plain words.
+- Every heading must be surrounded by blank lines — a heading never runs into the paragraph above or below it.
 
 Remove speech problems only:
 - Remove speech disfluencies: "um", "uh", "er", and filler uses of "like", "you know", "right?".
@@ -20,4 +26,6 @@ Do NOT:
 - Condense, summarize, generalize, or drop any content.
 - Add new examples or arguments that were not in the original.
 
-Output plain text only — no markdown symbols (**, #, -, etc.). Separate paragraphs with a single blank line.`
+Use the language of the resource: do not default to english.
+
+Output plain text only — no markdown symbols (**, #, -, etc.). Separate paragraphs and headings with a single blank line.`
