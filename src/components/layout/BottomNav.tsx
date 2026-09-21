@@ -9,7 +9,7 @@ import { ThemeToggleMini } from './ThemeToggle'
 const navItems = [
   { href: '/', label: 'Home', icon: Home },
   { href: '/topics', label: 'Courses', icon: LayoutList },
-  { href: '/resources', label: 'Resources', icon: BookOpen },
+  { href: '/resources', label: 'Materials', icon: BookOpen },
   { href: '/snippets', label: 'Notes', icon: Code },
   { href: '/ai', label: 'AI', icon: Brain },
   { href: '/settings', label: 'Settings', icon: Settings },
@@ -28,7 +28,9 @@ export function BottomNav({ user, authSlot }: BottomNavProps) {
     <>
       <nav className="nav-mobile-bar">
         <Link href="/" className="nav-mobile-logo">
-          <GraduationCap size={20} />
+          <span className="logo-tile">
+            <GraduationCap size={16} />
+          </span>
           Happy Training
         </Link>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -42,7 +44,7 @@ export function BottomNav({ user, authSlot }: BottomNavProps) {
           const active = href === '/' ? pathname === '/' : pathname.startsWith(href)
           return (
             <Link key={href} href={href} className={`bottom-nav-item${active ? ' active' : ''}`}>
-              <Icon size={22} />
+              <Icon size={21} />
               <span>{label}</span>
             </Link>
           )

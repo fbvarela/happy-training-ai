@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Upload } from 'lucide-react'
+import { Upload, Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { TopicMultiSelect } from '@/components/topics/TopicMultiSelect'
 import { uploadFileDirect } from '@/lib/uploadClient'
@@ -90,7 +90,7 @@ export function PDFUpload({ topics }: PDFUploadProps) {
 
       <div>
         <button type="submit" disabled={!file || loading} className="btn btn-primary">
-          {loading ? 'Uploading…' : 'Upload PDF'}
+          {loading ? <><Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> Uploading…</> : <><Upload size={15} /> Upload PDF</>}
         </button>
       </div>
     </form>

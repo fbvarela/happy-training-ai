@@ -1,4 +1,5 @@
 import { AnyPgColumn, boolean, integer, jsonb, pgTable, primaryKey, serial, text, timestamp } from "drizzle-orm/pg-core"
+import { DEFAULT_TOPIC_COLOR } from "@/lib/topics/theme"
 
 export const topics = pgTable('topics', {
   id: serial('id').primaryKey(),
@@ -6,7 +7,7 @@ export const topics = pgTable('topics', {
   slug: text('slug').notNull().unique(),
   description: text('description'),
   icon: text('icon').default('book'),
-  color: text('color').default('#6366f1'),
+  color: text('color').default(DEFAULT_TOPIC_COLOR),
   // Advisory hint only — never restricts what a resource under this topic
   // can contain. 'code' | 'prose' | null (null = prose-default UI).
   contentKind: text('content_kind'),

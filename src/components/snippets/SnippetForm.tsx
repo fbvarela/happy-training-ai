@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Check, FileCode2, Loader2, Plus, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { CodeEditor } from './CodeEditor'
 import { MarkdownPreview } from '@/components/markdown/MarkdownPreview'
@@ -86,7 +87,7 @@ export function SnippetForm({ snippet }: SnippetFormProps) {
             className="btn btn-ghost btn-sm"
             style={{ marginTop: '6px', alignSelf: 'flex-start', fontSize: '0.78rem' }}
           >
-            Change format
+            <FileCode2 size={13} /> Change format
           </button>
         )}
       </div>
@@ -127,10 +128,10 @@ export function SnippetForm({ snippet }: SnippetFormProps) {
 
       <div style={{ display: 'flex', gap: '10px' }}>
         <button type="submit" disabled={loading || !title.trim() || !code.trim()} className="btn btn-primary">
-          {loading ? 'Saving…' : snippet ? 'Save Changes' : 'Create Note'}
+          {loading ? <><Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> Saving…</> : snippet ? <><Check size={15} /> Save Changes</> : <><Plus size={15} /> Create Note</>}
         </button>
         <button type="button" className="btn btn-ghost" onClick={() => router.back()}>
-          Cancel
+          <X size={14} /> Cancel
         </button>
       </div>
     </form>

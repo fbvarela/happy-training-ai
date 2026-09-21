@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { FileText, Link2 } from 'lucide-react'
 import { ResourceForm } from './ResourceForm'
 import { PDFUpload } from './PDFUpload'
 import type { Topic } from '@/lib/db/schema'
@@ -20,14 +21,14 @@ export function NewResourceTabs({ topics }: Props) {
           className={tab === 'url' ? 'btn btn-primary btn-sm' : 'btn btn-ghost btn-sm'}
           style={{ flex: 1, borderRadius: '8px', border: 'none' }}
         >
-          URL / Manual
+          <Link2 size={13} /> URL / Manual
         </button>
         <button
           onClick={() => setTab('pdf')}
           className={tab === 'pdf' ? 'btn btn-primary btn-sm' : 'btn btn-ghost btn-sm'}
           style={{ flex: 1, borderRadius: '8px', border: 'none' }}
         >
-          Upload PDF
+          <FileText size={13} /> Upload PDF
         </button>
       </div>
 

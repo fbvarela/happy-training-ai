@@ -53,7 +53,7 @@ export function ReaderView({ children, title, description }: ReaderViewProps) {
               fontSize: '0.75rem',
               fontWeight: i === sizeIdx ? 700 : 400,
               background: i === sizeIdx ? 'var(--bark-bg)' : 'transparent',
-              color: i === sizeIdx ? '#fff' : 'var(--text-muted)',
+              color: i === sizeIdx ? 'var(--on-dark)' : 'var(--text-muted)',
               cursor: 'pointer',
               transition: 'background 0.14s, color 0.14s',
             }}

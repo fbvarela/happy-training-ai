@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createTopic, getTopics, slugify } from '@/lib/topics/queries'
+import { DEFAULT_TOPIC_COLOR } from '@/lib/topics/theme'
 
 export async function GET() {
   const list = await getTopics()
@@ -19,7 +20,7 @@ export async function POST(req: NextRequest) {
     slug: slugify(name),
     description: description?.trim() ?? null,
     icon: icon ?? 'book',
-    color: color ?? '#6366f1',
+    color: color ?? DEFAULT_TOPIC_COLOR,
     parentId: parentId ?? null,
     contentKind: contentKind ?? null,
   })

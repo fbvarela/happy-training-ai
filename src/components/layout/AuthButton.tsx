@@ -10,12 +10,7 @@ interface AuthButtonProps {
 export function AuthButton({ user, compact }: AuthButtonProps) {
   if (!user) {
     return (
-      <Link
-        href="/login"
-        className="btn btn-ghost btn-sm"
-        style={{ fontSize: '0.78rem', justifyContent: 'center' }}
-        title="Sign in with GitHub"
-      >
+      <Link href="/login" className="shell-btn" title="Sign in with GitHub">
         <LogIn size={14} />
         {!compact && 'Sign in'}
       </Link>
@@ -40,16 +35,11 @@ export function AuthButton({ user, compact }: AuthButtonProps) {
         />
       )}
       {!compact && (
-        <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+        <span style={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.62)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1 }}>
           {user.login}
         </span>
       )}
-      <button
-        type="submit"
-        className="btn btn-ghost btn-sm"
-        style={{ padding: '4px 6px' }}
-        title="Sign out"
-      >
+      <button type="submit" className="shell-icon-btn" title="Sign out" aria-label="Sign out">
         <LogOut size={13} />
       </button>
     </form>

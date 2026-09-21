@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Loader2, Sparkles, Save, Check, RotateCcw, X, MessageCircleQuestion } from 'lucide-react'
+import { Loader2, Sparkles, Save, Check, RotateCcw, X, MessageCircleQuestion, Send } from 'lucide-react'
 import { toast } from 'sonner'
 import { StreamingText } from './StreamingText'
 import { LANGUAGES } from '@/lib/snippets/languages'
@@ -158,7 +158,7 @@ export function AskAboutContent({ content, contentLabel, resourceId, defaultLang
                 autoFocus
               />
               <button onClick={handleAsk} disabled={!question.trim()} className="btn btn-primary btn-sm">
-                Ask
+                <Send size={13} /> Ask
               </button>
             </div>
           ) : text ? (

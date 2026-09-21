@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Sparkles, Code2, GitBranch } from 'lucide-react'
+import { ArrowRight, Code2, GitBranch, Sparkles } from 'lucide-react'
 import { TopBar } from '@/components/layout/TopBar'
 import { TopicSynthesis } from '@/components/ai/TopicSynthesis'
 import { getTopicIcon } from '@/lib/topics/icons'
@@ -15,65 +15,74 @@ export default async function AIPage() {
   return (
     <div>
       <TopBar
-        title="AI Suggestions"
+        title="AI Studio"
         description="Topic synthesis, explanations, and suggestions — powered by Cohere"
       />
 
       <div style={{ maxWidth: '680px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-        <div className="hf-card">
-          <h2 className="hf-card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Sparkles size={16} />
-            Topic Learning Maps
-          </h2>
-          <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '20px' }}>
-            Select a topic to generate a learning map — what&apos;s covered, suggested order, and knowledge gaps.
-          </p>
-          {topicList.length === 0 ? (
-            <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-              No topics yet.{' '}
-              <Link href="/topics/new" style={{ color: 'var(--bark)', textDecoration: 'underline' }}>Create one</Link>
+        <div>
+          <div style={{ marginBottom: '14px' }}>
+            <span className="section-label">Learning maps</span>
+          </div>
+          <div className="hf-card" style={{ padding: '22px 24px' }}>
+            <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', margin: '0 0 20px' }}>
+              Select a topic to generate a learning map — what&apos;s covered, suggested order, and knowledge gaps.
             </p>
-          ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              {topicList.map((topic) => (
-                <TopicLoader key={topic.id} topicId={topic.id} />
-              ))}
-            </div>
-          )}
-        </div>
-
-        <div className="hf-card">
-          <h2 className="hf-card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Code2 size={16} />
-            Snippet Explanations
-          </h2>
-          <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', marginBottom: '12px' }}>
-            Open any snippet and click <strong>Explain with AI</strong> to get a step-by-step walkthrough powered by Cohere.
-          </p>
-          <Link href="/snippets" className="btn btn-ghost btn-sm">
-            Go to snippets →
-          </Link>
-        </div>
-
-        {user && (
-          <div className="hf-card">
-            <h2 className="hf-card-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <GitBranch size={16} />
-              From your code
-            </h2>
-            {connectedRepoList.length === 0 ? (
-              <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-                No repos connected yet.{' '}
-                <Link href="/repos" style={{ color: 'var(--bark)', textDecoration: 'underline' }}>Connect one</Link>
-                {' '}to get resource suggestions based on your actual code.
+            {topicList.length === 0 ? (
+              <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', margin: 0 }}>
+                No topics yet.{' '}
+                <Link href="/topics/new" style={{ color: 'var(--leaf)', textDecoration: 'underline' }}>Create one</Link>
               </p>
             ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-                {connectedRepoList.map((repo) => (
-                  <RepoSuggestionLoader key={repo.id} repoId={repo.id} fullName={repo.fullName} />
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                {topicList.map((topic) => (
+                  <TopicLoader key={topic.id} topicId={topic.id} />
                 ))}
               </div>
             )}
+          </div>
+        </div>
+
+        <div>
+          <div style={{ marginBottom: '14px' }}>
+            <span className="section-label">Explanations</span>
+          </div>
+          <div className="hf-card" style={{ padding: '22px 24px', display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+            <div className="icon-tile">
+              <Code2 size={22} />
+            </div>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontWeight: 700, color: 'var(--bark)', fontSize: '0.95rem' }}>Snippet Explanations</div>
+              <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: '4px 0 0' }}>
+                Open any note and click <strong>Explain with AI</strong> to get a step-by-step walkthrough.
+              </p>
+            </div>
+            <Link href="/snippets" className="btn btn-ghost btn-sm" style={{ flexShrink: 0 }}>
+              Go to notes <ArrowRight size={13} />
+            </Link>
+          </div>
+        </div>
+
+        {user && (
+          <div>
+            <div style={{ marginBottom: '14px' }}>
+              <span className="section-label">From your code</span>
+            </div>
+            <div className="hf-card" style={{ padding: '22px 24px' }}>
+              {connectedRepoList.length === 0 ? (
+                <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)', margin: 0 }}>
+                  No repos connected yet.{' '}
+                  <Link href="/repos" style={{ color: 'var(--leaf)', textDecoration: 'underline' }}>Connect one</Link>
+                  {' '}to get resource suggestions based on your actual code.
+                </p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
+                  {connectedRepoList.map((repo) => (
+                    <RepoSuggestionLoader key={repo.id} repoId={repo.id} fullName={repo.fullName} />
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>
@@ -87,14 +96,14 @@ async function RepoSuggestionLoader({ repoId, fullName }: { repoId: number; full
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-        <GitBranch size={14} style={{ color: 'var(--bark)', opacity: 0.6 }} />
-        <Link href={`/repos/${repoId}`} style={{ fontWeight: 500, fontSize: '0.9rem', color: 'var(--bark)' }}>
+        <GitBranch size={14} style={{ color: 'var(--leaf)', opacity: 0.7 }} />
+        <Link href={`/repos/${repoId}`} style={{ fontWeight: 500, fontSize: '0.9rem', color: 'var(--bark)', textDecoration: 'none' }}>
           {fullName}
         </Link>
       </div>
       {!latest ? (
         <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>
-          No suggestions generated yet. <Link href={`/repos/${repoId}`} style={{ color: 'var(--bark)', textDecoration: 'underline' }}>Generate some →</Link>
+          No suggestions generated yet. <Link href={`/repos/${repoId}`} style={{ color: 'var(--leaf)', textDecoration: 'underline' }}>Generate some →</Link>
         </p>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
@@ -123,7 +132,7 @@ async function TopicLoader({ topicId }: { topicId: number }) {
   return (
     <div>
       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-        <TopicIcon size={15} style={{ color: 'var(--bark)', opacity: 0.7 }} />
+        <TopicIcon size={15} style={{ color: 'var(--leaf)', opacity: 0.8 }} />
         <span style={{ fontWeight: 500, fontSize: '0.9rem' }}>{topic.name}</span>
         <span style={{ fontSize: '0.78rem', color: 'var(--text-muted)' }}>({topicResources.length} resources)</span>
       </div>

@@ -1,4 +1,5 @@
 import { ImageResponse } from 'next/og'
+import { BRAND_ICON_BG, BRAND_ICON_FG } from '@/lib/topics/theme'
 
 export const size = { width: 32, height: 32 }
 export const contentType = 'image/png'
@@ -13,7 +14,7 @@ export default function Icon() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: '#3d2b1f',
+          background: BRAND_ICON_BG,
           borderRadius: 7,
         }}
       >
@@ -22,7 +23,7 @@ export default function Icon() {
           height="21"
           viewBox="0 0 24 24"
           fill="none"
-          stroke="#f9f4ea"
+          stroke={BRAND_ICON_FG}
           strokeWidth="2.1"
           strokeLinecap="round"
           strokeLinejoin="round"

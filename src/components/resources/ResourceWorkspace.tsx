@@ -66,7 +66,7 @@ function VideoEmbed({ element }: { element: ElementWithContent }) {
   const ytId = element.url?.match(/(?:v=|youtu\.be\/)([^&?]+)/)?.[1]
   if (ytId) {
     return (
-      <div style={{ aspectRatio: '16/9', borderRadius: '10px', overflow: 'hidden', background: '#000' }}>
+      <div style={{ aspectRatio: '16/9', borderRadius: '10px', overflow: 'hidden', background: 'var(--bark-bg)' }}>
         <iframe
           src={`https://www.youtube.com/embed/${ytId}`}
           style={{ width: '100%', height: '100%', border: 'none' }}
@@ -80,7 +80,7 @@ function VideoEmbed({ element }: { element: ElementWithContent }) {
   const src = proxyImageUrl(element.fileUrl ?? element.url)
   if (!src) return null
   return (
-    <video controls style={{ width: '100%', borderRadius: '10px', background: '#000' }}>
+    <video controls style={{ width: '100%', borderRadius: '10px', background: 'var(--bark-bg)' }}>
       <source src={src} />
     </video>
   )
@@ -184,8 +184,8 @@ function ImageContent({ element }: { element: ElementWithContent }) {
               position: 'absolute', top: '18px', right: '20px',
               background: 'rgba(255,255,255,0.12)', border: 'none', borderRadius: '50%',
               width: 40, height: 40, display: 'flex', alignItems: 'center', justifyContent: 'center',
-              color: '#fff', cursor: 'pointer',
-            }}
+color: 'var(--on-dark)', cursor: 'pointer',
+          }}
           >
             <X size={20} />
           </button>
@@ -297,7 +297,7 @@ function MainPanel({
         )}
 
         {element.isResource ? (
-          <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>main resource</span>
+          <span className="hf-badge" style={{ fontSize: '0.62rem', textTransform: 'uppercase', letterSpacing: '0.06em' }}>main lesson</span>
         ) : confirmDelete ? (
           <>
             <button onClick={() => setConfirmDelete(false)} className="btn btn-ghost btn-sm" style={{ padding: '4px 8px' }}>
@@ -821,8 +821,12 @@ export function ResourceWorkspace({ resourceId, initialElements, sidebarFooter, 
             ))}
           </>
         ) : (
-          <div style={{ textAlign: 'center', padding: '56px 24px', border: '1.5px dashed var(--line)', borderRadius: '12px', color: 'var(--text-muted)' }}>
-            No content yet. Add a file or paste a URL in the panel on the right.
+          <div style={{ textAlign: 'center', padding: '56px 24px', border: '1.5px dashed var(--line)', borderRadius: '14px', color: 'var(--text-muted)' }}>
+            <div style={{ marginBottom: '12px', color: 'var(--leaf)' }}>
+              <FileText size={28} />
+            </div>
+            <p style={{ margin: '0 0 4px', fontWeight: 600, color: 'var(--text)' }}>No lesson content yet</p>
+            <p style={{ fontSize: '0.85rem', margin: 0 }}>Add a file or paste a URL in the panel on the right.</p>
           </div>
         )}
       </div>
@@ -831,8 +835,13 @@ export function ResourceWorkspace({ resourceId, initialElements, sidebarFooter, 
       <aside className="resource-detail-sidebar course-materials">
         {secondary.length > 0 && (
           <div>
-            <div style={{ fontSize: '0.7rem', fontWeight: 700, letterSpacing: '0.07em', textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '10px' }}>
-              Course materials · {secondary.length}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '10px' }}>
+              <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.66rem', fontWeight: 500, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+                Lesson materials
+              </span>
+              <span className="hf-badge hf-badge-leaf" style={{ fontSize: '0.64rem', padding: '2px 8px' }}>
+                {secondary.filter((el) => el.transcriptStatus === 'done').length}/{secondary.length} covered
+              </span>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {secondary.map(el => (

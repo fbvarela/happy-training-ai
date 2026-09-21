@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
+import { Check, Loader2, Plus, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { TopicMultiSelect } from '@/components/topics/TopicMultiSelect'
 import type { Resource, Topic } from '@/lib/db/schema'
@@ -132,10 +133,10 @@ export function ResourceForm({ resource, topics }: ResourceFormProps) {
 
       <div style={{ display: 'flex', gap: '10px', paddingTop: '4px' }}>
         <button type="submit" className="btn btn-primary" disabled={loading || !title.trim()}>
-          {loading ? 'Saving…' : resource ? 'Save Changes' : 'Add Resource'}
+          {loading ? <><Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> Saving…</> : resource ? <><Check size={15} /> Save Changes</> : <><Plus size={15} /> Add Resource</>}
         </button>
         <button type="button" className="btn btn-ghost" onClick={() => router.back()}>
-          Cancel
+          <X size={14} /> Cancel
         </button>
       </div>
     </form>
