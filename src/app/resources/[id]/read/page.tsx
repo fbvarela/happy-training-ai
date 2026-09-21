@@ -93,7 +93,7 @@ async function ElementBlock({ element, index, total }: { element: ResourceElemen
           </h2>
         )}
         {ytId && (
-          <div style={{ aspectRatio: '16/9', borderRadius: '10px', overflow: 'hidden', background: '#000', marginBottom: '16px' }}>
+          <div style={{ aspectRatio: '16/9', borderRadius: '10px', overflow: 'hidden', background: 'var(--bark-bg)', marginBottom: '16px' }}>
             <iframe
               src={`https://www.youtube.com/embed/${ytId}`}
               style={{ width: '100%', height: '100%' }}

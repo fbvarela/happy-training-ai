@@ -72,7 +72,7 @@ export function CodeView({ code, language }: CodeViewProps) {
           >
             {copied ? <Check size={13} /> : <Copy size={13} />}
           </button>
-          <style>{`.group:hover .copy-btn { opacity: 1 !important }`}</style>
+          <style>{`.group:hover .copy-btn, .copy-btn:focus-visible { opacity: 1 !important }.copy-btn:focus-visible { outline: 2px solid rgba(255,255,255,0.9); outline-offset: 2px }`}</style>
           {html ? (
             <div
               style={{ fontSize: '0.875rem', borderRadius: '10px', overflow: 'auto', width: '100%', maxWidth: '100%' }}

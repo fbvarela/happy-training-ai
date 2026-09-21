@@ -6,14 +6,23 @@ import { usePathname } from 'next/navigation'
 import { BookOpen, Brain, Code, GitBranch, GraduationCap, Home, LayoutList, Settings } from 'lucide-react'
 import { ThemeToggle } from './ThemeToggle'
 
-const navItems = [
-  { href: '/', label: 'Home', icon: Home },
-  { href: '/topics', label: 'Courses', icon: LayoutList },
-  { href: '/resources', label: 'Resources', icon: BookOpen },
-  { href: '/snippets', label: 'Notes', icon: Code },
-  { href: '/ai', label: 'AI', icon: Brain },
-  { href: '/settings', label: 'Settings', icon: Settings },
+interface NavItem {
+  href: string
+  label: string
+  icon: typeof Home
+  section: string
+}
+
+const baseItems: NavItem[] = [
+  { href: '/', label: 'Home', icon: Home, section: 'Overview' },
+  { href: '/topics', label: 'Courses', icon: LayoutList, section: 'Learning' },
+  { href: '/resources', label: 'Materials', icon: BookOpen, section: 'Learning' },
+  { href: '/snippets', label: 'Notes', icon: Code, section: 'Learning' },
+  { href: '/ai', label: 'AI Studio', icon: Brain, section: 'Intelligence' },
+  { href: '/settings', label: 'Settings', icon: Settings, section: 'System' },
 ]
+
+const sections = ['Overview', 'Learning', 'Intelligence', 'System']
 
 interface SidebarProps {
   user: { login: string; image?: string } | null
@@ -22,28 +31,39 @@ interface SidebarProps {
 
 export function Sidebar({ user, authSlot }: SidebarProps) {
   const pathname = usePathname()
-  const items = user ? [...navItems, { href: '/repos', label: 'Repos', icon: GitBranch }] : navItems
+  const items = user ? [...baseItems, { href: '/repos', label: 'Repos', icon: GitBranch, section: 'Intelligence' }] : baseItems
 
   return (
     <aside className="sidebar-nav">
       <Link href="/" className="sidebar-logo">
-        <GraduationCap size={20} />
+        <span className="logo-tile">
+          <GraduationCap size={17} />
+        </span>
         Happy Training
       </Link>
 
       <nav className="sidebar-items">
-        {items.map(({ href, label, icon: Icon }) => {
-          const active = href === '/' ? pathname === '/' : pathname.startsWith(href)
+        {sections.map((section) => {
+          const sectionItems = items.filter((i) => i.section === section)
+          if (sectionItems.length === 0) return null
           return (
-            <Link key={href} href={href} className={`sideitem${active ? ' active' : ''}`}>
-              <Icon size={16} />
-              {label}
-            </Link>
+            <div key={section}>
+              <div className="sidebar-section">{section}</div>
+              {sectionItems.map(({ href, label, icon: Icon }) => {
+                const active = href === '/' ? pathname === '/' : pathname.startsWith(href)
+                return (
+                  <Link key={href} href={href} className={`sideitem${active ? ' active' : ''}`}>
+                    <Icon size={16} />
+                    {label}
+                  </Link>
+                )
+              })}
+            </div>
           )
         })}
       </nav>
 
-      <div className="sidebar-footer" style={{ display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'center' }}>
+      <div className="sidebar-footer" style={{ display: 'flex', flexDirection: 'column', gap: '10px', alignItems: 'stretch' }}>
         {authSlot}
         <ThemeToggle />
       </div>

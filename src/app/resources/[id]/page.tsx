@@ -91,7 +91,7 @@ export default async function ResourceDetailPage({ params }: { params: Promise<{
 
       {/* Badges */}
       <div className="resource-course-meta" style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '20px' }}>
-        <span className="hf-badge" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+        <span className="hf-badge hf-badge-leaf" style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
           <TypeIcon size={12} /> {resource.type}
         </span>
         {resource.topics.map((t) => {

@@ -1,4 +1,5 @@
 import { ImageResponse } from 'next/og'
+import { BRAND_ICON_BG, BRAND_ICON_FG } from '@/lib/topics/theme'
 
 export const size = { width: 180, height: 180 }
 export const contentType = 'image/png'
@@ -13,7 +14,7 @@ export default function AppleIcon() {
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          background: '#3d2b1f',
+          background: BRAND_ICON_BG,
         }}
       >
         <svg
@@ -21,7 +22,7 @@ export default function AppleIcon() {
           height="118"
           viewBox="0 0 24 24"
           fill="none"
-          stroke="#f9f4ea"
+          stroke={BRAND_ICON_FG}
           strokeWidth="1.7"
           strokeLinecap="round"
           strokeLinejoin="round"

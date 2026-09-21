@@ -2,15 +2,11 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { Check, Code2, Loader2, PencilLine, Plus, X } from 'lucide-react'
 import { toast } from 'sonner'
 import { TOPIC_ICONS, DEFAULT_TOPIC_ICON } from '@/lib/topics/icons'
+import { TOPIC_COLORS, DEFAULT_TOPIC_COLOR } from '@/lib/topics/theme'
 import type { Topic } from '@/lib/db/schema'
-
-const COLORS = [
-  '#4a7c59', '#3b82f6', '#8b5cf6', '#ec4899',
-  '#f43f5e', '#f97316', '#e8a020', '#14b8a6',
-  '#06b6d4', '#84cc16', '#c46b3a', '#3d2b1f',
-]
 
 interface TopicFormProps {
   topic?: Topic
@@ -22,7 +18,7 @@ export function TopicForm({ topic }: TopicFormProps) {
   const [name, setName] = useState(topic?.name ?? '')
   const [description, setDescription] = useState(topic?.description ?? '')
   const [icon, setIcon] = useState(topic?.icon ?? DEFAULT_TOPIC_ICON)
-  const [color, setColor] = useState(topic?.color ?? '#4a7c59')
+  const [color, setColor] = useState(topic?.color ?? DEFAULT_TOPIC_COLOR)
   const [contentKind, setContentKind] = useState<string | null>(topic?.contentKind ?? null)
 
   async function handleSubmit(e: React.FormEvent) {
@@ -92,15 +88,16 @@ export function TopicForm({ topic }: TopicFormProps) {
               style={{
                 width: '40px',
                 height: '40px',
-                borderRadius: '8px',
-                border: icon === key ? '2px solid var(--bark)' : '1.5px solid var(--line)',
-                background: icon === key ? 'var(--bark)' : 'var(--cream)',
-                color: icon === key ? '#fff' : 'var(--text-muted)',
+                borderRadius: '10px',
+                border: icon === key ? '1.5px solid color-mix(in srgb, var(--leaf) 50%, transparent)' : '1.5px solid var(--line)',
+                background: icon === key ? 'linear-gradient(135deg, var(--leaf), color-mix(in srgb, var(--leaf) 82%, var(--leaf-light)))' : 'var(--cream)',
+                color: icon === key ? 'var(--on-dark)' : 'var(--text-muted)',
+                boxShadow: icon === key ? 'var(--shadow-accent)' : 'none',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 cursor: 'pointer',
-                transition: 'all 0.14s',
+                transition: 'all 0.16s var(--ease-flow)',
               }}
             >
               <Icon size={18} />
@@ -112,7 +109,7 @@ export function TopicForm({ topic }: TopicFormProps) {
       <div className="field">
         <span className="input-label">Color</span>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '6px' }}>
-          {COLORS.map((c) => (
+          {TOPIC_COLORS.map((c) => (
             <button
               key={c}
               type="button"
@@ -145,7 +142,7 @@ export function TopicForm({ topic }: TopicFormProps) {
             className={`btn btn-sm ${contentKind === 'prose' || !contentKind ? 'btn-primary' : 'btn-ghost'}`}
             style={{ fontSize: '0.8rem' }}
           >
-            Mostly writing
+            <PencilLine size={13} /> Mostly writing
           </button>
           <button
             type="button"
@@ -153,7 +150,7 @@ export function TopicForm({ topic }: TopicFormProps) {
             className={`btn btn-sm ${contentKind === 'code' ? 'btn-primary' : 'btn-ghost'}`}
             style={{ fontSize: '0.8rem' }}
           >
-            Mostly code
+            <Code2 size={13} /> Mostly code
           </button>
         </div>
         <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '6px' }}>
@@ -163,10 +160,10 @@ export function TopicForm({ topic }: TopicFormProps) {
 
       <div style={{ display: 'flex', gap: '10px', paddingTop: '4px' }}>
         <button type="submit" className="btn btn-primary" disabled={loading || !name.trim()}>
-          {loading ? 'Saving…' : topic ? 'Save Changes' : 'Create Topic'}
+          {loading ? <><Loader2 size={15} style={{ animation: 'spin 1s linear infinite' }} /> Saving…</> : topic ? <><Check size={15} /> Save Changes</> : <><Plus size={15} /> Create Course</>}
         </button>
         <button type="button" className="btn btn-ghost" onClick={() => router.back()}>
-          Cancel
+          <X size={14} /> Cancel
         </button>
       </div>
     </form>

@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { Plus } from 'lucide-react'
+import { ArrowUpDown, BookOpen, Filter, Plus } from 'lucide-react'
 import { TopBar } from '@/components/layout/TopBar'
 import { getResources } from '@/lib/resources/queries'
 import { getTopics } from '@/lib/topics/queries'
@@ -54,46 +54,63 @@ export default async function ResourcesPage({
 
       {resources.length === 0 ? (
         <div className="empty-state">
-          <p>{search ? 'No materials match your search.' : 'No materials yet.'}</p>
-          <Link href="/resources/new" className="btn btn-ghost btn-sm">Add your first material</Link>
+          <div className="empty-state-icon">
+            <BookOpen size={24} />
+          </div>
+          <p>{search ? 'No materials match your search.' : 'No materials yet. Add videos, PDFs, articles, or files.'}</p>
+          <Link href="/resources/new" className="btn btn-primary btn-sm">Add your first material</Link>
         </div>
       ) : (
         <>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
             <ResourceSearch current={search ?? ''} />
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexShrink: 0 }}>
               <TopicFilter current={topicId} topics={topics} />
               <SortSelect current={sort} />
             </div>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
             {resources.map((r) => {
               const TypeIcon = getResourceIcon(r.type)
               return (
-                <Link key={r.id} href={`/resources/${r.id}`} style={{ textDecoration: 'none' }}>
-                  <div className="hf-card" style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <TypeIcon size={18} style={{ color: 'var(--bark)', flexShrink: 0, opacity: 0.7 }} />
+                <Link key={r.id} href={`/resources/${r.id}`} className="hf-card-link">
+                  <div className="hf-card" style={{ padding: '13px 16px', display: 'flex', alignItems: 'center', gap: '13px' }}>
+                    <span
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        width: '36px',
+                        height: '36px',
+                        borderRadius: '10px',
+                        background: 'var(--cream)',
+                        border: '1px solid var(--line)',
+                        color: 'var(--bark)',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <TypeIcon size={17} />
+                    </span>
                     <div style={{ flex: 1, minWidth: 0 }}>
-                      <div style={{ fontWeight: 500, fontSize: '0.9rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      <div style={{ fontWeight: 500, fontSize: '0.9rem', color: 'var(--bark)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                         {r.title}
                       </div>
                       {r.description && (
-                        <div style={{ fontSize: '0.78rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <div style={{ fontSize: '0.76rem', color: 'var(--text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {r.description}
                         </div>
                       )}
                     </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
-                      {r.topics.map((t) => {
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0, flexWrap: 'wrap', justifyContent: 'flex-end' }}>
+                      {r.topics.slice(0, 2).map((t) => {
                         const TopicIcon = getTopicIcon(t.icon)
                         return (
-                          <span key={t.id} style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '0.78rem', color: 'var(--text-muted)' }}>
-                            <TopicIcon size={12} />
-                            {t.name}
+                          <span key={t.id} className="hf-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                            <TopicIcon size={11} /> {t.name}
                           </span>
                         )
                       })}
-                      <span className="hf-badge">{r.type}</span>
+                      <span className="hf-badge hf-badge-leaf">{r.type}</span>
                     </div>
                   </div>
                 </Link>

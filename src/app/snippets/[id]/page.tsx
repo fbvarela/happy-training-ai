@@ -1,6 +1,6 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { Pencil } from 'lucide-react'
+import { CalendarDays, Pencil } from 'lucide-react'
 import { TopBar } from '@/components/layout/TopBar'
 import { CodeView } from '@/components/snippets/CodeView'
 import { ExplainSnippet } from '@/components/ai/ExplainSnippet'
@@ -36,7 +36,7 @@ export default async function SnippetDetailPage({ params }: { params: Promise<{ 
       />
 
       <div style={{ marginBottom: '16px' }}>
-        <span className="hf-badge">{snippet.language}</span>
+        <span className="hf-badge hf-badge-leaf">{snippet.language}</span>
       </div>
 
       <div style={{ maxWidth: '720px' }}>
@@ -44,8 +44,8 @@ export default async function SnippetDetailPage({ params }: { params: Promise<{ 
         <ExplainSnippet code={snippet.code} language={snippet.language} />
       </div>
 
-      <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '24px' }}>
-        Created {new Date(snippet.createdAt).toLocaleDateString()}
+      <p style={{ fontSize: '0.78rem', color: 'var(--text-muted)', marginTop: '24px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <CalendarDays size={13} /> Created {new Date(snippet.createdAt).toLocaleDateString()}
       </p>
     </div>
   )

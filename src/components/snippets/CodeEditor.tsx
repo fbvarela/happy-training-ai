@@ -54,7 +54,7 @@ export function CodeEditor({ value, onChange, language }: CodeEditorProps) {
         oneDark,
         updateListener,
         EditorView.theme({
-          '&': { fontSize: '13px', minHeight: '200px' },
+          '&': { fontSize: '0.8125rem', minHeight: '200px' },
           '.cm-scroller': { fontFamily: 'var(--font-geist-mono, monospace)' },
         }),
       ],
